@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "go-briefly-bot"
-version = "2.3.0"
+version = "2.4.0"
 description = "A Telegram bot that summarizes YouTube and VK Video content using AI"
 readme = "README.md"
 license = {text = "MIT"}
