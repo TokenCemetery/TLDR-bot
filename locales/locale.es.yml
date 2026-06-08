@@ -19,4 +19,4 @@ telegram:
 
 openai:
   system_prompt: <instructions>\n- Enfócate en los puntos clave.\n- Mantén la estructura original y resalta las ideas principales de cada sección.\n- Escribe el resumen en español.\n</instructions>
-  user_prompt: <task>Escribe un resumen conciso de la información presentada.</task>
+  user_prompt: <task>Escribe un resumen conciso de la información proporcionada.</task>

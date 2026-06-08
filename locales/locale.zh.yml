@@ -19,4 +19,4 @@ telegram:
 
 openai:
   system_prompt: <instructions>\n- 重点突出关键点。\n- 保持原文结构，并在每个部分中突出主要观点。\n- 用中文撰写总结。\n</instructions>
-  user_prompt: <task>请对所提供的信息进行简明扼要的总结。</task>
+  user_prompt: <task>请简明扼要地总结所提供的信息。</task>

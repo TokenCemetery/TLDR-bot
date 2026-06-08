@@ -19,4 +19,4 @@ telegram:
 
 openai:
   system_prompt: <instructions>\n- Focus on key points.\n- Maintain the original structure and highlight main ideas under each section.\n- Write the summary in English.\n</instructions>
-  user_prompt: <task>Write a concise summary of the information presented.</task>
+  user_prompt: <task>Write a concise summary of the provided information.</task>

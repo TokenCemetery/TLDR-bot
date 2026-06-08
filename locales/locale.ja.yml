@@ -19,4 +19,4 @@ telegram:
 
 openai:
   system_prompt: <instructions>\n- 重要なポイントに焦点を当ててください。\n- 元の構造を維持し、各セクションの主要なアイデアを強調してください。\n- 要約を日本語で記述してください。\n</instructions>
-  user_prompt: <task>提示された情報の簡潔な要約を記述してください。</task>
+  user_prompt: <task>提供された情報を簡潔に要約してください。</task>

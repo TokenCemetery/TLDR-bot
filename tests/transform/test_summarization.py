@@ -3,10 +3,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-from openai import BadRequestError
+from openai import APIStatusError, BadRequestError, UnprocessableEntityError
 from src.config import Settings
 from src.load.content_document import ContentDocument
 from src.transform.summarization import OpenAISummarizer
+
+HTTP_UNPROCESSABLE_ENTITY = 422
 
 
 def build_settings(**overrides: object) -> Settings:
@@ -35,10 +37,17 @@ def build_document(content: str = "Input text to summarize") -> ContentDocument:
     )
 
 
-def build_bad_request(message: str) -> BadRequestError:
+def build_status_error(
+    message: str,
+    *,
+    status_code: int = 400,
+    body: object | None = None,
+) -> APIStatusError:
     request = httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
-    response = httpx.Response(400, request=request)
-    return BadRequestError(message, response=response, body=None)
+    response = httpx.Response(status_code, request=request)
+    if status_code == HTTP_UNPROCESSABLE_ENTITY:
+        return UnprocessableEntityError(message, response=response, body=body)
+    return BadRequestError(message, response=response, body=body)
 
 
 @pytest.mark.asyncio
@@ -173,7 +182,13 @@ async def test_summarizer_falls_back_to_inline_content() -> None:
         mock_response.choices = [mock_choice]
         mock_client_instance.chat.completions.create = AsyncMock(
             side_effect=[
-                build_bad_request("Unsupported content part type: file"),
+                build_status_error(
+                    "Request rejected",
+                    body={
+                        "code": "unsupported_content_type",
+                        "param": "messages.1.content.1.file",
+                    },
+                ),
                 mock_response,
             ]
         )
@@ -197,19 +212,80 @@ async def test_summarizer_falls_back_to_inline_content() -> None:
 
 
 @pytest.mark.asyncio
+async def test_summarizer_falls_back_for_422_unsupported_file_content() -> None:
+    mock_settings = build_settings()
+
+    with patch("src.transform.summarization.AsyncOpenAI") as mock_openai_class:
+        mock_client_instance = MagicMock()
+        mock_response = MagicMock()
+        mock_choice = MagicMock()
+        mock_choice.message.content = "Fallback summary"
+        mock_response.choices = [mock_choice]
+        mock_client_instance.chat.completions.create = AsyncMock(
+            side_effect=[
+                build_status_error(
+                    "Request validation failed",
+                    status_code=HTTP_UNPROCESSABLE_ENTITY,
+                    body={
+                        "error": {
+                            "message": "Unknown content part type: file",
+                            "param": "messages.1.content.1",
+                        }
+                    },
+                ),
+                mock_response,
+            ]
+        )
+        mock_openai_class.return_value = mock_client_instance
+
+        with patch("src.transform.summarization.translate", side_effect=["System style", "Summarize source.md"]):
+            summarizer = OpenAISummarizer(mock_settings)
+            result = await summarizer._summarize(build_document("# Source"), "en")
+
+    assert result == "Fallback summary"
+    expected_calls = 2
+    assert mock_client_instance.chat.completions.create.call_count == expected_calls
+
+
+@pytest.mark.asyncio
 async def test_summarizer_does_not_fallback_for_unrelated_bad_request() -> None:
     mock_settings = build_settings()
 
     with patch("src.transform.summarization.AsyncOpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
         mock_client_instance.chat.completions.create = AsyncMock(
-            side_effect=build_bad_request("Invalid model"),
+            side_effect=build_status_error("Invalid model"),
         )
         mock_openai_class.return_value = mock_client_instance
 
         with patch("src.transform.summarization.translate", side_effect=["System style", "Summarize the document"]):
             summarizer = OpenAISummarizer(mock_settings)
             with pytest.raises(RuntimeError, match="Invalid model"):
+                await summarizer._summarize(build_document(), "en")
+
+    assert mock_client_instance.chat.completions.create.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_summarizer_does_not_fallback_for_invalid_file() -> None:
+    mock_settings = build_settings()
+
+    with patch("src.transform.summarization.AsyncOpenAI") as mock_openai_class:
+        mock_client_instance = MagicMock()
+        mock_client_instance.chat.completions.create = AsyncMock(
+            side_effect=build_status_error(
+                "Invalid file data",
+                body={
+                    "code": "invalid_value",
+                    "param": "messages.1.content.1.file.file_data",
+                },
+            ),
+        )
+        mock_openai_class.return_value = mock_client_instance
+
+        with patch("src.transform.summarization.translate", side_effect=["System style", "Summarize source.md"]):
+            summarizer = OpenAISummarizer(mock_settings)
+            with pytest.raises(RuntimeError, match="Invalid file data"):
                 await summarizer._summarize(build_document(), "en")
 
     assert mock_client_instance.chat.completions.create.call_count == 1

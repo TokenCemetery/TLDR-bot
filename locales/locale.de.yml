@@ -19,4 +19,4 @@ telegram:
 
 openai:
   system_prompt: <instructions>\n- Konzentrieren Sie sich auf die wichtigsten Punkte.\n- Behalten Sie die ursprüngliche Struktur bei und heben Sie die Hauptideen unter jedem Abschnitt hervor.\n- Verfassen Sie die Zusammenfassung auf Deutsch.\n</instructions>
-  user_prompt: <task>Verfassen Sie eine kurze Zusammenfassung der präsentierten Informationen.</task>
+  user_prompt: <task>Fassen Sie die bereitgestellten Informationen kurz zusammen.</task>

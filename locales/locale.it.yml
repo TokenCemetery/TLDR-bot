@@ -19,4 +19,4 @@ telegram:
 
 openai:
   system_prompt: <istruzioni>\n- Concentrati sui punti chiave.\n- Mantieni la struttura originale ed evidenzia le idee principali in ogni sezione.\n- Scrivi il riassunto in italiano.\n</istruzioni>
-  user_prompt: <task>Scrivi un riassunto conciso delle informazioni presentate.</task>
+  user_prompt: <task>Scrivi un riassunto conciso delle informazioni fornite.</task>

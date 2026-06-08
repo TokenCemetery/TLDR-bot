@@ -12,7 +12,7 @@ import hashlib
 import logging
 import time
 
-from openai import AsyncOpenAI, BadRequestError
+from openai import APIStatusError, AsyncOpenAI
 from openai.types.chat import ChatCompletion, ChatCompletionMessageParam
 
 from ..cache import CacheProvider, get_cache_provider
@@ -124,7 +124,7 @@ class OpenAISummarizer:
                     self._file_messages(system_prompt, user_prompt, document.content),
                 )
                 request_mode = "file"
-            except BadRequestError as exc:
+            except APIStatusError as exc:
                 if not self._is_unsupported_file_error(exc):
                     raise
                 logger.info(
@@ -215,12 +215,34 @@ class OpenAISummarizer:
         ]
 
     @staticmethod
-    def _is_unsupported_file_error(exc: BadRequestError) -> bool:
+    def _is_unsupported_file_error(exc: APIStatusError) -> bool:
         """Return whether a provider rejected the file content-part format."""
-        message = str(exc).lower()
-        file_terms = ("file", "content part", "content type", "input type")
-        unsupported_terms = ("unsupported", "not supported", "unknown", "invalid")
-        return any(term in message for term in file_terms) and any(term in message for term in unsupported_terms)
+        if exc.status_code not in {400, 422}:
+            return False
+
+        details = " ".join(
+            value
+            for value in (
+                exc.message,
+                exc.code,
+                exc.param,
+                exc.type,
+                OpenAISummarizer._error_body_text(exc.body),
+            )
+            if value
+        ).lower()
+        file_terms = ("file", "content part", "content_part", "content type", "input type")
+        unsupported_terms = ("unsupported", "not supported", "unknown content part", "unknown content type")
+        return any(term in details for term in file_terms) and any(term in details for term in unsupported_terms)
+
+    @staticmethod
+    def _error_body_text(body: object | None) -> str:
+        """Extract scalar error details from a provider response body."""
+        if isinstance(body, dict):
+            return " ".join(OpenAISummarizer._error_body_text(value) for value in body.values())
+        if isinstance(body, list):
+            return " ".join(OpenAISummarizer._error_body_text(value) for value in body)
+        return str(body) if isinstance(body, (str, int, float)) else ""
 
     @staticmethod
     def _text_hash(text: str) -> str:

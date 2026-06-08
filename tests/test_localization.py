@@ -10,6 +10,8 @@ def test_all_locales_define_openai_prompts() -> None:
         data = yaml.safe_load(locale_file.read_text(encoding="utf-8"))
         assert "system_prompt" in data["openai"], locale_file
         assert "user_prompt" in data["openai"], locale_file
+        assert "source.md" not in data["openai"]["user_prompt"], locale_file
+        assert "Markdown" not in data["openai"]["user_prompt"], locale_file
         assert "prompt" not in data["openai"], locale_file
 
 
