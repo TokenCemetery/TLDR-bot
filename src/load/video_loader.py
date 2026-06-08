@@ -21,6 +21,7 @@ import yt_dlp
 
 from ..cache import CacheProvider, get_cache_provider
 from ..config import Settings
+from .content_document import ContentDocument
 from .transcripts import clean_srt
 from .video_provider import build_video_source
 from .yt_dlp_logger import YtDlpCaptureLogger
@@ -71,28 +72,6 @@ class VideoInfo:
     subtitles: dict[str, list[dict[str, str]]]
 
 
-@dataclass(frozen=True)
-class VideoTranscript:
-    """
-    Processed video transcript data.
-
-    Attributes:
-        id: Unique video identifier.
-        language: Transcript language code.
-        uploader: Channel/user who uploaded the video.
-        title: Video title.
-        thumbnail: URL to video thumbnail.
-        transcript: Cleaned transcript text.
-    """
-
-    id: str
-    language: str
-    uploader: str
-    title: str
-    thumbnail: str
-    transcript: str
-
-
 class VideoDataLoader:
     """
     Loads video information and transcripts from supported platforms.
@@ -112,7 +91,7 @@ class VideoDataLoader:
         self.cache_provider: CacheProvider = get_cache_provider(settings)
         self.yt_dlp_additional_options = settings.yt_dlp_additional_options
 
-    async def load(self, url: str) -> VideoTranscript:
+    async def load(self, url: str) -> ContentDocument:
         """
         Load transcript.
 
@@ -120,7 +99,7 @@ class VideoDataLoader:
             url: Video URL to process.
 
         Returns:
-            VideoTranscript if available, otherwise raise exception.
+            ContentDocument containing the video transcript and metadata.
 
         Throws:
             - `RuntimeError` - video info/subtitles failed
@@ -132,7 +111,19 @@ class VideoDataLoader:
         cache_key = f"{cache_prefix}:{self._get_video_hash(url)}"
         cached_transcript = await self.cache_provider.get_dict(cache_key)
         if cached_transcript:
-            transcript = VideoTranscript(**cached_transcript)
+            if "content" in cached_transcript:
+                transcript = ContentDocument(**cached_transcript)
+            else:
+                transcript = ContentDocument(
+                    id=str(cached_transcript.get("id", video_id)),
+                    source_type="video",
+                    url=url,
+                    title=str(cached_transcript.get("title", "")),
+                    language=str(cached_transcript.get("language", "")),
+                    content=str(cached_transcript.get("transcript", "")),
+                    thumbnail=str(cached_transcript.get("thumbnail", "")),
+                    metadata={"uploader": str(cached_transcript.get("uploader", ""))},
+                )
             logger.debug("Transcript loaded from cache", extra={"url": url})
             return transcript
 
@@ -146,7 +137,7 @@ class VideoDataLoader:
 
         return transcript
 
-    def _load(self, url: str, video_id: str) -> VideoTranscript:
+    def _load(self, url: str, video_id: str) -> ContentDocument:
         """
         Load video info and download transcript.
 
@@ -252,13 +243,15 @@ class VideoDataLoader:
         raw_transcript = subtitle_file.read_text(encoding="utf-8", errors="ignore")
         transcript_text = clean_srt(raw_transcript)
 
-        transcript = VideoTranscript(
+        transcript = ContentDocument(
             id=info.id,
+            source_type="video",
+            url=url,
             language=language,
-            uploader=info.uploader,
             title=info.title,
             thumbnail=info.thumbnail,
-            transcript=transcript_text,
+            content=transcript_text,
+            metadata={"uploader": info.uploader},
         )
 
         logger.info("Transcript loaded successfully", extra={"url": url, "length": len(transcript_text)})

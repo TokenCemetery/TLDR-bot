@@ -5,8 +5,8 @@ Briefly Bot is a modular monolith. The application runs as one Python service, w
 ## Current Runtime
 
 - Telegram client: receives user messages, sends progress updates, and replies with summaries.
-- Source loading: extracts supported video URLs and loads video transcripts with `yt-dlp`.
-- Summarization: sends cleaned source text to an OpenAI-compatible API.
+- Source loading: extracts supported video URLs and returns source-neutral `ContentDocument` values with transcripts in `content`.
+- Summarization: sends localized system and task prompts plus source Markdown to an OpenAI-compatible API.
 - Cache: stores transcripts, summaries, and rate-limit state through an in-memory or Valkey provider.
 - Localization: renders bot messages and LLM prompts in the user's language.
 
@@ -35,3 +35,11 @@ The application should remain one Python service until there is concrete pressur
 - Keep the summarizer independent from content source type.
 - Keep cache keys source-aware to avoid collisions between videos and web pages.
 
+## Summarization Requests
+
+The summarizer receives a `ContentDocument` rather than a transcript-specific
+value. It sends separate localized system and user prompts and prefers a
+Markdown file content part named `source.md`. Providers that explicitly reject
+file content parts are retried once with the same Markdown embedded in the user
+message. Authentication, rate limits, timeouts, server failures, and unrelated
+bad requests do not trigger the inline fallback.

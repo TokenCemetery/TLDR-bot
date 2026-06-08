@@ -2,6 +2,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from src.config import Settings
+from src.load.content_document import ContentDocument
 from src.transform.summarization import OpenAISummarizer
 
 
@@ -18,6 +19,17 @@ def build_settings(**overrides: object) -> Settings:
     for key, value in overrides.items():
         setattr(settings, key, value)
     return settings
+
+
+def build_document(content: str = "Input text to summarize") -> ContentDocument:
+    return ContentDocument(
+        id="test",
+        source_type="video",
+        url="https://example.com/video",
+        title="Test video",
+        language="en",
+        content=content,
+    )
 
 
 @pytest.mark.asyncio
@@ -54,22 +66,28 @@ async def test_summarizer_summarize_text_success() -> None:
 
         mock_openai_class.return_value = mock_client_instance
 
-        # Mock the translate function to return a fixed system prompt
         with patch("src.transform.summarization.translate") as mock_translate:
-            mock_translate.return_value = "Input text to summarize"
+            mock_translate.side_effect = ["System style", "Summarize the document"]
 
             summarizer = OpenAISummarizer(mock_settings)
-            result = await summarizer._summarize("Input text to summarize", "en")
+            result = await summarizer._summarize(build_document(), "en")
 
-            # Verify the API was called correctly
             mock_client_instance.chat.completions.create.assert_called_once_with(
                 model="gpt-3.5-turbo",
                 messages=[
-                    {"role": "user", "content": "Input text to summarize"},
+                    {"role": "system", "content": "System style"},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": "Summarize the document"},
+                            {"type": "text", "text": "Input text to summarize"},
+                        ],
+                    },
                 ],
                 timeout=300,
             )
-
+            assert mock_translate.call_args_list[0].args == ("openai.system_prompt",)
+            assert mock_translate.call_args_list[1].args == ("openai.user_prompt",)
             assert result == "This is the summary"
 
 
@@ -94,14 +112,13 @@ async def test_summarizer_summarize_text_empty_response() -> None:
 
         mock_openai_class.return_value = mock_client_instance
 
-        # Mock the translate function
         with patch("src.transform.summarization.translate") as mock_translate:
-            mock_translate.return_value = "You are a helpful assistant."
+            mock_translate.side_effect = ["System style", "Summarize the document"]
 
             summarizer = OpenAISummarizer(mock_settings)
 
             with pytest.raises(RuntimeError, match="empty OpenAI response"):
-                await summarizer._summarize("Input text to summarize", "en")
+                await summarizer._summarize(build_document(), "en")
 
 
 @pytest.mark.asyncio
@@ -111,24 +128,19 @@ async def test_summarizer_summarize_text_with_retry_failure() -> None:
     with patch("src.transform.summarization.AsyncOpenAI") as mock_openai_class:
         mock_client_instance = MagicMock()
 
-        # All calls raise exceptions
         mock_client_instance.chat.completions.create = AsyncMock(
-            side_effect=[
-                Exception("Network error 1"),
-                Exception("Network error 2"),
-            ]
+            side_effect=Exception("Network error"),
         )
 
         mock_openai_class.return_value = mock_client_instance
 
-        # Mock the translate function
         with patch("src.transform.summarization.translate") as mock_translate:
-            mock_translate.return_value = "You are a helpful assistant."
+            mock_translate.side_effect = ["System style", "Summarize the document"]
 
             summarizer = OpenAISummarizer(mock_settings)
 
-            with pytest.raises(RuntimeError, match="failed to summarize text:"):
-                await summarizer._summarize("Input text to summarize", "en")
+            with pytest.raises(RuntimeError, match="failed to summarize content:"):
+                await summarizer._summarize(build_document(), "en")
 
             expected_calls = 1
             assert mock_client_instance.chat.completions.create.call_count == expected_calls
@@ -140,10 +152,10 @@ async def test_summarizer_invalid_args() -> None:
     summarizer = OpenAISummarizer(mock_settings)
 
     with pytest.raises(ValueError, match="locale must be a non-empty string"):
-        await summarizer.summarize("test", "")
+        await summarizer.summarize(build_document(), "")
 
-    with pytest.raises(ValueError, match="text must be a non-empty string"):
-        await summarizer.summarize("", "en")
+    with pytest.raises(ValueError, match="document content must be a non-empty string"):
+        await summarizer.summarize(build_document(""), "en")
 
 
 @pytest.mark.asyncio
@@ -155,7 +167,7 @@ async def test_summarize_cached() -> None:
     mock_provider.get.return_value = "Cached summary"
     summarizer.cache_provider = mock_provider
 
-    result = await summarizer.summarize("Input text", "en")
+    result = await summarizer.summarize(build_document("Input text"), "en")
 
     assert result == "Cached summary"
     mock_provider.get.assert_called_once()
@@ -172,7 +184,7 @@ async def test_summarize_uncached() -> None:
     summarizer.cache_provider = mock_provider
 
     with patch.object(summarizer, "_summarize", return_value="New summary"):
-        result = await summarizer.summarize("Input text", "en")
+        result = await summarizer.summarize(build_document("Input text"), "en")
 
         assert result == "New summary"
         mock_provider.get.assert_called_once()

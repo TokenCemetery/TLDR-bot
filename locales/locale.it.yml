@@ -18,4 +18,5 @@ telegram:
     title: 📖 **[%{title}](%{url})**
 
 openai:
-  prompt: <task>Scrivi un riassunto conciso delle informazioni presentate.</task>\n<istruzioni>\n- Concentrati sui punti chiave.\n- Mantieni la struttura originale ed evidenzia le idee principali in ogni sezione.\n- Scrivi il riassunto in italiano.\n</istruzioni>\n<data id="text">\n%{text}\n</data>
+  system_prompt: <istruzioni>\n- Concentrati sui punti chiave.\n- Mantieni la struttura originale ed evidenzia le idee principali in ogni sezione.\n- Scrivi il riassunto in italiano.\n- Sii diretto e preciso, senza riempitivi o formule di cortesia superflue.\n- Preferisci una prosa chiara; usa elenchi, titoli e grassetto solo quando migliorano la leggibilità.\n- Adatta la lunghezza e il livello di dettaglio del riassunto alla complessità della fonte.\n- Conserva il significato, le sfumature e l'incertezza della fonte senza criticarla o verificarne i fatti.\n- Evita ripetizioni e cautele non necessarie.\n- Non inventare fatti, nomi, citazioni, statistiche o certezze non supportati dalla fonte.\n- Non usare emoji o un linguaggio teatrale.\n</istruzioni>
+  user_prompt: <task>Scrivi un riassunto conciso delle informazioni fornite.</task>

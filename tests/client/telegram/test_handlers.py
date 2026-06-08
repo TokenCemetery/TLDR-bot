@@ -7,7 +7,7 @@ from src.client.telegram.handlers.commands import start_command
 from src.client.telegram.handlers.errors import error_handler
 from src.client.telegram.handlers.messages import handle_message
 from src.config import Settings
-from src.load.video_loader import VideoTranscript
+from src.load.content_document import ContentDocument
 
 
 @pytest.fixture
@@ -97,7 +97,16 @@ async def test_bot_handle_message_multiple_urls(mock_deps: MagicMock, mock_messa
 
 @pytest.mark.asyncio
 async def test_bot_handle_message_success(mock_deps: MagicMock, mock_message: MagicMock) -> None:
-    transcript = VideoTranscript(id="123", language="en", uploader="test", title="Test Video", thumbnail="", transcript="Test transcript")
+    document = ContentDocument(
+        id="123",
+        source_type="video",
+        url="https://youtube.com/watch?v=123",
+        language="en",
+        title="Test Video",
+        thumbnail="",
+        content="Test transcript",
+        metadata={"uploader": "test"},
+    )
 
     processing_msg_mock = AsyncMock()
     mock_message.reply.return_value = processing_msg_mock
@@ -105,14 +114,14 @@ async def test_bot_handle_message_success(mock_deps: MagicMock, mock_message: Ma
     with (
         patch.object(mock_deps.rate_limiter, "is_limited", return_value=False),
         patch("src.client.telegram.handlers.messages.extract_urls", return_value=["https://youtube.com/watch?v=123"]),
-        patch.object(mock_deps.loader, "load", return_value=transcript) as mock_load,
+        patch.object(mock_deps.loader, "load", return_value=document) as mock_load,
         patch.object(mock_deps.summarizer, "summarize", return_value="Test summary") as mock_summarize,
         patch("src.client.telegram.handlers.messages.translate", side_effect=lambda key, **kw: key),
     ):
         await handle_message(mock_message, mock_deps.loader, mock_deps.summarizer, mock_deps.rate_limiter, mock_deps.settings)
 
         mock_load.assert_called_once_with("https://youtube.com/watch?v=123")
-        mock_summarize.assert_called_once_with("Test transcript", "en")
+        mock_summarize.assert_called_once_with(document, "en")
 
         # Original message reply for processing, and second reply for final result
         expected_calls = 2
@@ -137,14 +146,23 @@ async def test_bot_handle_message_loader_fails(mock_deps: MagicMock, mock_messag
 
 @pytest.mark.asyncio
 async def test_bot_handle_message_summarizer_fails(mock_deps: MagicMock, mock_message: MagicMock) -> None:
-    transcript = VideoTranscript(id="123", language="en", uploader="test", title="Test Video", thumbnail="", transcript="Test transcript")
+    document = ContentDocument(
+        id="123",
+        source_type="video",
+        url="https://youtube.com/watch?v=123",
+        language="en",
+        title="Test Video",
+        thumbnail="",
+        content="Test transcript",
+        metadata={"uploader": "test"},
+    )
     processing_msg_mock = AsyncMock()
     mock_message.reply.return_value = processing_msg_mock
 
     with (
         patch.object(mock_deps.rate_limiter, "is_limited", return_value=False),
         patch("src.client.telegram.handlers.messages.extract_urls", return_value=["https://youtube.com/watch?v=123"]),
-        patch.object(mock_deps.loader, "load", return_value=transcript),
+        patch.object(mock_deps.loader, "load", return_value=document),
         patch.object(mock_deps.summarizer, "summarize", side_effect=Exception("Summarize error")),
         patch("src.client.telegram.handlers.messages.translate", return_value="Fail"),
     ):

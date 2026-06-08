@@ -1,9 +1,10 @@
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from src.config import Settings
-from src.load.video_loader import VideoDataLoader, VideoInfo, VideoTranscript, _is_safe_option_value
+from src.load.content_document import ContentDocument
+from src.load.video_loader import VideoDataLoader, VideoInfo, _is_safe_option_value
 
 
 def build_settings(**overrides: object) -> Settings:
@@ -35,22 +36,26 @@ def test_video_info_creation() -> None:
     assert info.subtitles == {"en": [{"url": "sub_url"}]}
 
 
-def test_video_transcript_creation() -> None:
-    transcript = VideoTranscript(
+def test_content_document_creation() -> None:
+    transcript = ContentDocument(
         id="test_id",
+        source_type="video",
+        url="https://example.com/video",
         language="en",
-        uploader="test_uploader",
         title="test_title",
         thumbnail="test_thumbnail",
-        transcript="test transcript",
+        content="test transcript",
+        metadata={"uploader": "test_uploader"},
     )
 
     assert transcript.id == "test_id"
+    assert transcript.source_type == "video"
+    assert transcript.url == "https://example.com/video"
     assert transcript.language == "en"
-    assert transcript.uploader == "test_uploader"
+    assert transcript.metadata["uploader"] == "test_uploader"
     assert transcript.title == "test_title"
     assert transcript.thumbnail == "test_thumbnail"
-    assert transcript.transcript == "test transcript"
+    assert transcript.content == "test transcript"
 
 
 def test_video_data_loader_initialization() -> None:
@@ -67,6 +72,33 @@ def test_video_data_loader_initialization_with_options() -> None:
     )
 
     assert loader.yt_dlp_additional_options == ("--format", "mp4")
+
+
+@pytest.mark.asyncio
+async def test_video_data_loader_maps_legacy_cached_transcript() -> None:
+    loader = VideoDataLoader(build_settings())
+    loader.cache_provider = AsyncMock()
+    loader.cache_provider.get_dict.return_value = {
+        "id": "test_id",
+        "language": "en",
+        "uploader": "test_uploader",
+        "title": "test_title",
+        "thumbnail": "test_thumbnail",
+        "transcript": "test transcript",
+    }
+
+    document = await loader.load("https://youtu.be/test1234567")
+
+    assert document == ContentDocument(
+        id="test_id",
+        source_type="video",
+        url="https://www.youtube.com/watch?v=test1234567",
+        title="test_title",
+        language="en",
+        content="test transcript",
+        thumbnail="test_thumbnail",
+        metadata={"uploader": "test_uploader"},
+    )
 
 
 def test_video_data_loader_subtitle_template_path() -> None:
@@ -228,7 +260,7 @@ def test_load_success(mock_youtube_dl_class: MagicMock) -> None:
 
             assert transcript is not None
             assert transcript.id == "test_id"
-            assert transcript.transcript == "Test subtitle"
+            assert transcript.content == "Test subtitle"
 
 
 @patch("yt_dlp.YoutubeDL")
