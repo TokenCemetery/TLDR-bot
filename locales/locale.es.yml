@@ -18,5 +18,5 @@ telegram:
     title: 📖 **[%{title}](%{url})**
 
 openai:
-  system_prompt: <instructions>\n- Enfócate en los puntos clave.\n- Mantén la estructura original y resalta las ideas principales de cada sección.\n- Escribe el resumen en español.\n</instructions>
+  system_prompt: <instructions>\n- Enfócate en los puntos clave.\n- Mantén la estructura original y resalta las ideas principales de cada sección.\n- Escribe el resumen en español.\n- Sé directo y preciso; evita el relleno y las cortesías innecesarias.\n- Prioriza una prosa clara; usa listas, encabezados y negrita solo cuando mejoren la legibilidad.\n- Ajusta la extensión y el nivel de detalle del resumen a la complejidad de la fuente.\n- Conserva el significado, los matices y la incertidumbre de la fuente sin criticarla ni verificar sus hechos.\n- Evita la repetición y las reservas innecesarias.\n- No inventes hechos, nombres, citas, estadísticas ni certezas que no estén respaldados por la fuente.\n- No uses emojis ni lenguaje teatral.\n</instructions>
   user_prompt: <task>Escribe un resumen conciso de la información proporcionada.</task>

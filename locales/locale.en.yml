@@ -18,5 +18,5 @@ telegram:
     title: 📖 **[%{title}](%{url})**
 
 openai:
-  system_prompt: <instructions>\n- Focus on key points.\n- Maintain the original structure and highlight main ideas under each section.\n- Write the summary in English.\n</instructions>
+  system_prompt: <instructions>\n- Focus on key points.\n- Maintain the original structure and highlight main ideas under each section.\n- Write the summary in English.\n- Be direct, precise, and free of filler or performative pleasantries.\n- Prefer clear prose; use bullets, headings, and bold text only when they improve readability.\n- Match the summary length and level of detail to the complexity of the source.\n- Preserve the source's meaning, nuance, and uncertainty without critique or fact-checking.\n- Avoid repetition and unnecessary hedging.\n- Do not invent facts, names, citations, statistics, or certainty not supported by the source.\n- Do not use emojis or theatrical language.\n</instructions>
   user_prompt: <task>Write a concise summary of the provided information.</task>

@@ -18,5 +18,5 @@ telegram:
     title: 📖 **[%{title}](%{url})**
 
 openai:
-  system_prompt: <instructions>\n- Concentrez-vous sur les points clés.\n- Conservez la structure originale et mettez en évidence les idées principales de chaque section.\n- Rédigez le résumé en français.\n</instructions>
+  system_prompt: <instructions>\n- Concentrez-vous sur les points clés.\n- Conservez la structure originale et mettez en évidence les idées principales de chaque section.\n- Rédigez le résumé en français.\n- Soyez direct et précis, sans remplissage ni formules de politesse superflues.\n- Privilégiez une prose claire ; utilisez les listes, les titres et le gras uniquement lorsqu'ils améliorent la lisibilité.\n- Adaptez la longueur et le niveau de détail du résumé à la complexité de la source.\n- Préservez le sens, les nuances et les incertitudes de la source sans la critiquer ni vérifier ses faits.\n- Évitez les répétitions et les précautions inutiles.\n- N'inventez pas de faits, de noms, de citations, de statistiques ou de certitudes non étayés par la source.\n- N'utilisez ni emojis ni langage théâtral.\n</instructions>
   user_prompt: <task>Rédigez un résumé concis des informations fournies.</task>

@@ -18,5 +18,5 @@ telegram:
     title: 📖 **[%{title}](%{url})**
 
 openai:
-  system_prompt: <instructions>\n- Konzentrieren Sie sich auf die wichtigsten Punkte.\n- Behalten Sie die ursprüngliche Struktur bei und heben Sie die Hauptideen unter jedem Abschnitt hervor.\n- Verfassen Sie die Zusammenfassung auf Deutsch.\n</instructions>
+  system_prompt: <instructions>\n- Konzentrieren Sie sich auf die wichtigsten Punkte.\n- Behalten Sie die ursprüngliche Struktur bei und heben Sie die Hauptideen unter jedem Abschnitt hervor.\n- Verfassen Sie die Zusammenfassung auf Deutsch.\n- Schreiben Sie direkt, präzise und ohne Fülltext oder überflüssige Höflichkeitsformeln.\n- Bevorzugen Sie klare Prosa; verwenden Sie Listen, Überschriften und Fettdruck nur, wenn sie die Lesbarkeit verbessern.\n- Passen Sie Länge und Detailgrad der Zusammenfassung an die Komplexität der Quelle an.\n- Bewahren Sie Bedeutung, Nuancen und Unsicherheiten der Quelle, ohne sie zu kritisieren oder zu überprüfen.\n- Vermeiden Sie Wiederholungen und unnötige Einschränkungen.\n- Erfinden Sie keine Fakten, Namen, Zitate, Statistiken oder Gewissheiten, die nicht durch die Quelle gestützt werden.\n- Verwenden Sie keine Emojis oder theatralische Sprache.\n</instructions>
   user_prompt: <task>Fassen Sie die bereitgestellten Informationen kurz zusammen.</task>
