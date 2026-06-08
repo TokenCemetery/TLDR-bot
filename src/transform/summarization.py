@@ -7,13 +7,11 @@ timeout handling, and localization support.
 
 from __future__ import annotations
 
-import base64
 import hashlib
 import logging
 import time
 
-from openai import APIStatusError, AsyncOpenAI
-from openai.types.chat import ChatCompletion, ChatCompletionMessageParam
+from openai import AsyncOpenAI
 
 from ..cache import CacheProvider, get_cache_provider
 from ..config import Settings
@@ -119,22 +117,20 @@ class OpenAISummarizer:
 
         try:
             start_time = time.monotonic()
-            try:
-                response = await self._create_completion(
-                    self._file_messages(system_prompt, user_prompt, document.content),
-                )
-                request_mode = "file"
-            except APIStatusError as exc:
-                if not self._is_unsupported_file_error(exc):
-                    raise
-                logger.info(
-                    "Provider does not support file content; retrying inline",
-                    extra={"model": self.settings.openai_model},
-                )
-                response = await self._create_completion(
-                    self._inline_messages(system_prompt, user_prompt, document.content),
-                )
-                request_mode = "inline"
+            response = await self.client.chat.completions.create(
+                model=self.settings.openai_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": user_prompt},
+                            {"type": "text", "text": document.content},
+                        ],
+                    },
+                ],
+                timeout=self.settings.openai_timeout_seconds,
+            )
             elapsed = time.monotonic() - start_time
 
             if not response or not response.choices:
@@ -161,7 +157,6 @@ class OpenAISummarizer:
                 extra={
                     "locale": locale,
                     "model": self.settings.openai_model,
-                    "request_mode": request_mode,
                     "elapsed_ms": int(elapsed * 1000),
                     "content_length": len(content),
                 },
@@ -173,76 +168,6 @@ class OpenAISummarizer:
                 extra={"error": str(exc)},
             )
             raise RuntimeError(f"failed to summarize content: {exc}") from exc
-
-    async def _create_completion(self, messages: list[ChatCompletionMessageParam]) -> ChatCompletion:
-        """Create a chat completion using the configured model and timeout."""
-        return await self.client.chat.completions.create(
-            model=self.settings.openai_model,
-            messages=messages,
-            timeout=self.settings.openai_timeout_seconds,
-        )
-
-    @staticmethod
-    def _file_messages(system_prompt: str, user_prompt: str, content: str) -> list[ChatCompletionMessageParam]:
-        """Build messages with the source represented as a Markdown file."""
-        encoded_content = base64.b64encode(content.encode("utf-8")).decode("ascii")
-        return [
-            {"role": "system", "content": system_prompt},
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": user_prompt},
-                    {
-                        "type": "file",
-                        "file": {
-                            "filename": "source.md",
-                            "file_data": encoded_content,
-                        },
-                    },
-                ],
-            },
-        ]
-
-    @staticmethod
-    def _inline_messages(system_prompt: str, user_prompt: str, content: str) -> list[ChatCompletionMessageParam]:
-        """Build compatible messages with the source Markdown inline."""
-        return [
-            {"role": "system", "content": system_prompt},
-            {
-                "role": "user",
-                "content": f'{user_prompt}\n\n<document filename="source.md">\n{content}\n</document>',
-            },
-        ]
-
-    @staticmethod
-    def _is_unsupported_file_error(exc: APIStatusError) -> bool:
-        """Return whether a provider rejected the file content-part format."""
-        if exc.status_code not in {400, 422}:
-            return False
-
-        details = " ".join(
-            value
-            for value in (
-                exc.message,
-                exc.code,
-                exc.param,
-                exc.type,
-                OpenAISummarizer._error_body_text(exc.body),
-            )
-            if value
-        ).lower()
-        file_terms = ("file", "content part", "content_part", "content type", "input type")
-        unsupported_terms = ("unsupported", "not supported", "unknown content part", "unknown content type")
-        return any(term in details for term in file_terms) and any(term in details for term in unsupported_terms)
-
-    @staticmethod
-    def _error_body_text(body: object | None) -> str:
-        """Extract scalar error details from a provider response body."""
-        if isinstance(body, dict):
-            return " ".join(OpenAISummarizer._error_body_text(value) for value in body.values())
-        if isinstance(body, list):
-            return " ".join(OpenAISummarizer._error_body_text(value) for value in body)
-        return str(body) if isinstance(body, (str, int, float)) else ""
 
     @staticmethod
     def _text_hash(text: str) -> str:
