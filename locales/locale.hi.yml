@@ -18,4 +18,5 @@ telegram:
     title: 📖 **[%{title}](%{url})**
 
 openai:
-  prompt: <task>दी गई जानकारी की छोटी समरी लिखें।</task>\n<instructions>\n- खास बातों पर ध्यान दें।\n- ओरिजिनल स्ट्रक्चर बनाए रखें और हर सेक्शन के तहत मुख्य आइडिया को हाईलाइट करें।\n- समरी हिंदी में लिखें।\n</instructions>\n<data id="text">\n%{text}\n</data>
+  system_prompt: <instructions>\n- खास बातों पर ध्यान दें।\n- ओरिजिनल स्ट्रक्चर बनाए रखें और हर सेक्शन के तहत मुख्य आइडिया को हाईलाइट करें।\n- समरी हिंदी में लिखें।\n</instructions>
+  user_prompt: <task>दी गई जानकारी की छोटी समरी लिखें।</task>

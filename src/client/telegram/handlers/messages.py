@@ -26,7 +26,7 @@ async def handle_message(  # noqa: C901, PLR0911
     rate_limiter: UserRateLimiter,
     settings: Settings,
 ) -> None:
-    """Extracts URLs, loads video transcripts, summarizes them, and sends the summary back to the user."""
+    """Load URL content, summarize it, and send the summary to the user."""
 
     user = message.from_user
     if user is None:
@@ -99,23 +99,21 @@ async def handle_message(  # noqa: C901, PLR0911
         await processing_message.edit_text(translate("telegram.error.multiple_urls", locale=language))
         return
 
-    video_url = urls[0]
+    source_url = urls[0]
     logger.info(
         "Processing video URL",
         extra={
             "userID": user.id,
             "username": user.username,
             "message_id": message.message_id,
-            "url": video_url,
+            "url": source_url,
         },
     )
 
     await processing_message.edit_text(translate("telegram.progress.fetching_info", locale=language))
 
-    transcript = None
-
     try:
-        transcript = await loader.load(video_url)
+        document = await loader.load(source_url)
     except Exception as exc:
         logger.exception(
             "Failed to load transcript",
@@ -123,7 +121,7 @@ async def handle_message(  # noqa: C901, PLR0911
                 "userID": user.id,
                 "username": user.username,
                 "message_id": message.message_id,
-                "url": video_url,
+                "url": source_url,
                 "error": str(exc),
             },
         )
@@ -131,7 +129,7 @@ async def handle_message(  # noqa: C901, PLR0911
         return
 
     logger.info(
-        "Transcript loaded",
+        "Content loaded",
         extra={
             "userID": user.id,
             "username": user.username,
@@ -142,10 +140,10 @@ async def handle_message(  # noqa: C901, PLR0911
     await processing_message.edit_text(translate("telegram.progress.summarizing", locale=language))
 
     try:
-        summary = await summarizer.summarize(transcript.transcript, language)
+        summary = await summarizer.summarize(document, language)
     except Exception as exc:
         logger.exception(
-            "Failed to summarize transcript",
+            "Failed to summarize content",
             extra={
                 "userID": user.id,
                 "username": user.username,
@@ -169,8 +167,8 @@ async def handle_message(  # noqa: C901, PLR0911
     title = translate(
         "telegram.response.title",
         locale=language,
-        title=transcript.title,
-        url=video_url,
+        title=document.title,
+        url=document.url,
     )
     response = f"{title}\n{summary}".strip()
     chunks = to_lexical_chunks(response, settings.max_telegram_message_length)
@@ -186,7 +184,7 @@ async def handle_message(  # noqa: C901, PLR0911
         )
         await message.reply(
             text=markdown_to_telegram_html(chunk),
-            link_preview_options=LinkPreviewOptions(is_disabled=False, url=video_url, show_above_text=True, prefer_small_media=True),
+            link_preview_options=LinkPreviewOptions(is_disabled=False, url=document.url, show_above_text=True, prefer_small_media=True),
         )
 
     logger.info(
@@ -195,7 +193,7 @@ async def handle_message(  # noqa: C901, PLR0911
             "userID": user.id,
             "username": user.username,
             "message_id": message.message_id,
-            "url": video_url,
+            "url": document.url,
         },
     )
 

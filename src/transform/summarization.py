@@ -7,14 +7,17 @@ timeout handling, and localization support.
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import logging
 import time
 
-from openai import AsyncOpenAI
+from openai import AsyncOpenAI, BadRequestError
+from openai.types.chat import ChatCompletion, ChatCompletionMessageParam
 
 from ..cache import CacheProvider, get_cache_provider
 from ..config import Settings
+from ..load.content_document import ContentDocument
 from ..localization import translate
 
 logger = logging.getLogger(__name__)
@@ -51,12 +54,12 @@ class OpenAISummarizer:
             max_retries=settings.openai_max_retries,
         )
 
-    async def summarize(self, text: str, locale: str) -> str:
+    async def summarize(self, document: ContentDocument, locale: str) -> str:
         """
-        Summarize text.
+        Summarize a content document.
 
         Args:
-            text: Input text to summarize.
+            document: Source-neutral document to summarize.
             locale: Target locale for system prompt localization.
 
         Returns:
@@ -64,17 +67,17 @@ class OpenAISummarizer:
         """
         if not locale:
             raise ValueError("locale must be a non-empty string")
-        if not text:
-            raise ValueError("text must be a non-empty string")
+        if not document.content:
+            raise ValueError("document content must be a non-empty string")
 
-        video_hash = self._text_hash(text)
-        cache_key = f"{cache_prefix}:{video_hash}:{locale}"
+        content_hash = self._text_hash(document.content)
+        cache_key = f"{cache_prefix}:{content_hash}:{locale}"
         cached_summary = await self.cache_provider.get(cache_key)
         if cached_summary:
             logger.debug("Summary loaded from cache", extra={"locale": locale})
             return cached_summary
 
-        summary = await self._summarize(text, locale)
+        summary = await self._summarize(document, locale)
         await self.cache_provider.put(
             cache_key,
             summary,
@@ -82,12 +85,12 @@ class OpenAISummarizer:
         )
         return summary
 
-    async def _summarize(self, text: str, locale: str) -> str:
+    async def _summarize(self, document: ContentDocument, locale: str) -> str:
         """
-        Summarize text using the configured LLM model.
+        Summarize a document using the configured LLM model.
 
         Args:
-            text: Input text to summarize.
+            document: Source-neutral document to summarize.
             locale: Target locale for system prompt localization.
 
         Returns:
@@ -100,23 +103,38 @@ class OpenAISummarizer:
             raise ValueError("locale must be a non-empty string")
 
         logger.info(
-            "Summarizing text",
-            extra={"locale": locale, "text_length": len(text), "model": self.settings.openai_model},
+            "Summarizing content",
+            extra={
+                "locale": locale,
+                "content_length": len(document.content),
+                "source_type": document.source_type,
+                "model": self.settings.openai_model,
+            },
         )
-        prompt = translate("openai.prompt", locale=locale, text=text)
+        system_prompt = translate("openai.system_prompt", locale=locale)
+        user_prompt = translate("openai.user_prompt", locale=locale)
 
         if self.settings.openai_max_retries <= 0:
             raise ValueError("openai_max_retries must be greater than 0")
 
         try:
             start_time = time.monotonic()
-            response = await self.client.chat.completions.create(
-                model=self.settings.openai_model,
-                messages=[
-                    {"role": "user", "content": prompt},
-                ],
-                timeout=self.settings.openai_timeout_seconds,
-            )
+            try:
+                response = await self._create_completion(
+                    self._file_messages(system_prompt, user_prompt, document.content),
+                )
+                request_mode = "file"
+            except BadRequestError as exc:
+                if not self._is_unsupported_file_error(exc):
+                    raise
+                logger.info(
+                    "Provider does not support file content; retrying inline",
+                    extra={"model": self.settings.openai_model},
+                )
+                response = await self._create_completion(
+                    self._inline_messages(system_prompt, user_prompt, document.content),
+                )
+                request_mode = "inline"
             elapsed = time.monotonic() - start_time
 
             if not response or not response.choices:
@@ -143,6 +161,7 @@ class OpenAISummarizer:
                 extra={
                     "locale": locale,
                     "model": self.settings.openai_model,
+                    "request_mode": request_mode,
                     "elapsed_ms": int(elapsed * 1000),
                     "content_length": len(content),
                 },
@@ -153,9 +172,57 @@ class OpenAISummarizer:
                 "OpenAI summarization attempt failed",
                 extra={"error": str(exc)},
             )
-            raise RuntimeError(f"failed to summarize text: {exc}") from exc
+            raise RuntimeError(f"failed to summarize content: {exc}") from exc
+
+    async def _create_completion(self, messages: list[ChatCompletionMessageParam]) -> ChatCompletion:
+        """Create a chat completion using the configured model and timeout."""
+        return await self.client.chat.completions.create(
+            model=self.settings.openai_model,
+            messages=messages,
+            timeout=self.settings.openai_timeout_seconds,
+        )
+
+    @staticmethod
+    def _file_messages(system_prompt: str, user_prompt: str, content: str) -> list[ChatCompletionMessageParam]:
+        """Build messages with the source represented as a Markdown file."""
+        encoded_content = base64.b64encode(content.encode("utf-8")).decode("ascii")
+        return [
+            {"role": "system", "content": system_prompt},
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": user_prompt},
+                    {
+                        "type": "file",
+                        "file": {
+                            "filename": "source.md",
+                            "file_data": encoded_content,
+                        },
+                    },
+                ],
+            },
+        ]
+
+    @staticmethod
+    def _inline_messages(system_prompt: str, user_prompt: str, content: str) -> list[ChatCompletionMessageParam]:
+        """Build compatible messages with the source Markdown inline."""
+        return [
+            {"role": "system", "content": system_prompt},
+            {
+                "role": "user",
+                "content": f'{user_prompt}\n\n<document filename="source.md">\n{content}\n</document>',
+            },
+        ]
+
+    @staticmethod
+    def _is_unsupported_file_error(exc: BadRequestError) -> bool:
+        """Return whether a provider rejected the file content-part format."""
+        message = str(exc).lower()
+        file_terms = ("file", "content part", "content type", "input type")
+        unsupported_terms = ("unsupported", "not supported", "unknown", "invalid")
+        return any(term in message for term in file_terms) and any(term in message for term in unsupported_terms)
 
     @staticmethod
     def _text_hash(text: str) -> str:
-        """Return a deterministic cache key for the transcript text."""
+        """Return a deterministic cache key for source content."""
         return hashlib.sha256(text.encode("utf-8")).hexdigest()

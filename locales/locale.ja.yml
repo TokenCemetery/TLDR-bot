@@ -18,4 +18,5 @@ telegram:
     title: 📖 **[%{title}](%{url})**
 
 openai:
-  prompt: <task>提示された情報の簡潔な要約を記述してください。</task>\n<instructions>\n- 重要なポイントに焦点を当ててください。\n- 元の構造を維持し、各セクションの主要なアイデアを強調してください。\n- 要約を日本語で記述してください。\n</instructions>\n<data id="text">\n%{text}\n</data>
+  system_prompt: <instructions>\n- 重要なポイントに焦点を当ててください。\n- 元の構造を維持し、各セクションの主要なアイデアを強調してください。\n- 要約を日本語で記述してください。\n</instructions>
+  user_prompt: <task>提示された情報の簡潔な要約を記述してください。</task>

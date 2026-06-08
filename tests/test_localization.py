@@ -1,6 +1,16 @@
+from pathlib import Path
 from unittest.mock import patch
 
+import yaml
 from src.localization import DEFAULT_LOCALE, _setup_i18n, normalize_locale, translate
+
+
+def test_all_locales_define_openai_prompts() -> None:
+    for locale_file in Path("locales").glob("locale.*.yml"):
+        data = yaml.safe_load(locale_file.read_text(encoding="utf-8"))
+        assert "system_prompt" in data["openai"], locale_file
+        assert "user_prompt" in data["openai"], locale_file
+        assert "prompt" not in data["openai"], locale_file
 
 
 def testnormalize_locale_none() -> None:

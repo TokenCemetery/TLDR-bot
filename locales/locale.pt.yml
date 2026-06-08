@@ -18,4 +18,5 @@ telegram:
     title: 📖 **[%{title}](%{url})**
 
 openai:
-  prompt: <task>Escreva um resumo conciso da informação apresentada.</task>\n<instructions>\n- Concentre-se nos pontos principais. \n- Mantenha a estrutura original e destaque as ideias principais em cada secção. \n- Escreva o resumo em português. \n</instructions>\n<data id="text">\n%{text}\n</data>
+  system_prompt: <instructions>\n- Concentre-se nos pontos principais. \n- Mantenha a estrutura original e destaque as ideias principais em cada secção. \n- Escreva o resumo em português. \n</instructions>
+  user_prompt: <task>Escreva um resumo conciso da informação apresentada.</task>
