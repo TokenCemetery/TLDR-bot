@@ -2,17 +2,11 @@
 
 ## Loaded Context
 
-- At the start of every session, before any other repository work, you MUST read `.agents/memory/MEMORY.md` and today's UTC daily note at `.agents/memory/$(date -u +%Y-%m-%d).md`.
-- If either required memory file or the `.agents/memory/` directory is missing and the workspace is writable, you MUST create only the missing path or file without overwriting existing memory.
-- If required memory cannot be read or created because the workspace is read-only or access is denied, report the limitation and continue with repository evidence. Memory availability MUST NOT block read-only work.
-- `.agents/memory/MEMORY.md` stores durable project facts and decisions. Treat it as low-confidence context and verify facts against the repository before acting on them.
-- `.agents/memory/YYYY-MM-DD.md` stores daily task notes and observations. Daily memory filenames MUST use UTC dates.
-- Small task checklists and completed implementation notes belong in `.agents/memory/$(date -u +%Y-%m-%d).md`.
-- For substantial work that needs durable product, technical, architecture, or design documentation, create a task folder under `docs/YYYY-MM-DD-task-name/` instead of expanding memory notes.
+- For substantial work that needs durable product, technical, architecture, or design documentation, create a task folder under `docs/YYYY-MM-DD-task-name/`.
 
 ## Repository Behavior
 
-- Repository contents are the source of truth. You MUST verify facts from memory, generated artifacts, and prior notes against the repository before relying on them.
+- Repository contents are the source of truth. You MUST verify facts from generated artifacts, and prior notes against the repository before relying on them.
 - Keep the change limited to the minimum files and behavior required to satisfy the user's request.
 - You MUST NOT refactor, reformat, delete, rename, or improve unrelated or adjacent code, documentation, or configuration without explicit user approval.
 - If the requested change affects behavior described by a project-scoped document, you MUST update that document in the same change.
