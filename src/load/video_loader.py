@@ -33,7 +33,7 @@ cache_prefix = "transcript:"
 
 def _is_safe_option_value(value: str) -> bool:
     """
-    Check if an option value is safe (no shell injection or path traversal).
+    Check if an option value is safe (no shell metacharacters or ``..`` path traversal).
 
     Args:
         value: The option value to validate.
@@ -42,7 +42,7 @@ def _is_safe_option_value(value: str) -> bool:
         True if safe, False otherwise.
     """
     # Block path traversal
-    if ".." in value or value.startswith("/"):
+    if ".." in value:
         return False
     # Block shell metacharacters
     if any(char in value for char in (";", "|", "&", "$", "`", "(", ")", "<", ">", "\\", "\n", "\r")):
