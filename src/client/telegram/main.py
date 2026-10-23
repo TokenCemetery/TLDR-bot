@@ -11,6 +11,7 @@ from aiogram.enums import ParseMode
 from src.cache.base import CacheProvider
 from src.cache.factory import get_cache_provider
 from src.client.telegram.handlers import commands_router, errors_router, messages_router
+from src.client.telegram.retry_after_middleware import RetryAfterMiddleware
 from src.config import Settings
 from src.load.video_loader import VideoDataLoader
 from src.logger import configure_logging
@@ -45,6 +46,7 @@ async def main() -> None:
         session=session,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
+    bot.session.middleware(RetryAfterMiddleware())
 
     await dp.start_polling(
         bot,
