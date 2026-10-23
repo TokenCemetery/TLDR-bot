@@ -223,7 +223,25 @@ def test_build_ydl_opts_with_user_options() -> None:
     opts = loader._build_ydl_opts()
 
     assert opts["format"] == "mp4"
-    assert opts["cookies"] == "cookies.txt"
+    assert opts["cookiefile"] == "cookies.txt"
+    assert "cookies" not in opts
+
+
+def test_build_ydl_opts_translates_cli_flags_to_api_keys() -> None:
+    loader = VideoDataLoader(
+        build_settings(yt_dlp_additional_options=("--extractor-args", "youtube:player_client=web", "--sleep-requests", "1")),
+    )
+    opts = loader._build_ydl_opts()
+
+    assert opts["extractor_args"] == {"youtube": {"player_client": ["web"]}}
+    assert opts["sleep_interval_requests"] == 1.0
+
+
+def test_build_ydl_opts_rejects_invalid_flag() -> None:
+    loader = VideoDataLoader(build_settings(yt_dlp_additional_options=("--no-such-flag",)))
+
+    with pytest.raises(ValueError, match="Invalid YT_DLP_ADDITIONAL_OPTIONS"):
+        loader._build_ydl_opts()
 
 
 @patch("yt_dlp.YoutubeDL")
@@ -348,10 +366,11 @@ def test_is_safe_option_value() -> None:
     assert _is_safe_option_value("safe_value") is True
     assert _is_safe_option_value("--option") is True
     assert _is_safe_option_value("https://example.com") is True
+    assert _is_safe_option_value("/app/data/cookies.txt") is True
 
     # Path traversal
     assert _is_safe_option_value("../unsafe") is False
-    assert _is_safe_option_value("/etc/passwd") is False
+    assert _is_safe_option_value("/app/../etc/passwd") is False
 
     # Shell injection
     assert _is_safe_option_value("val; rm -rf /") is False
@@ -364,7 +383,7 @@ def test_is_safe_option_value() -> None:
 
 def test_ydl_opts_filters_unsafe_values() -> None:
     # Include an unsafe option value
-    unsafe_settings = build_settings(yt_dlp_additional_options=("--format", "mp4", "--outtmpl", "/etc/passwd"))
+    unsafe_settings = build_settings(yt_dlp_additional_options=("--format", "mp4", "--outtmpl", "../etc/passwd"))
     loader = VideoDataLoader(unsafe_settings)
     opts = loader._build_ydl_opts()
 

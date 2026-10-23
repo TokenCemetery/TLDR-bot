@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import logging
+import optparse
 import tempfile
 from dataclasses import asdict, dataclass
 from pathlib import Path
@@ -48,6 +49,31 @@ def _is_safe_option_value(value: str) -> bool:
     if any(char in value for char in (";", "|", "&", "$", "`", "(", ")", "<", ">", "\\", "\n", "\r")):
         return False
     return True
+
+
+def _cli_args_to_ydl_opts(args: list[str]) -> dict[str, Any]:
+    """
+    Translate yt-dlp CLI arguments into ``YoutubeDL`` parameters.
+
+    CLI flag names do not map 1:1 to API keys (``--cookies`` is ``cookiefile``), and yt-dlp
+    silently ignores unknown keys, so the translation is delegated to yt-dlp's own parser.
+    Only values that differ from the CLI defaults are returned.
+
+    Args:
+        args: CLI arguments, e.g. ``["--cookies", "/app/data/cookies.txt"]``.
+
+    Returns:
+        Dictionary of ``YoutubeDL`` parameters set by ``args``.
+
+    Raises:
+        ValueError: If yt-dlp rejects the arguments.
+    """
+    defaults = yt_dlp.parse_options(["--ignore-config"]).ydl_opts
+    try:
+        parsed = yt_dlp.parse_options(["--ignore-config", *args]).ydl_opts
+    except (optparse.OptParseError, SystemExit) as exc:
+        raise ValueError(f"Invalid YT_DLP_ADDITIONAL_OPTIONS: {exc}") from exc
+    return {key: value for key, value in parsed.items() if defaults.get(key) != value}
 
 
 @dataclass(frozen=True)
@@ -272,7 +298,7 @@ class VideoDataLoader:
 
         Note:
             User-provided options are filtered to prevent injection attacks.
-            Only safe options (starting with --) are allowed.
+            Only safe options (starting with --) are allowed, then translated by yt-dlp's own parser.
         """
         opts: dict[str, Any] = {
             "quiet": True,
@@ -281,12 +307,11 @@ class VideoDataLoader:
         }
         if extra_options:
             opts.update(extra_options)
-        # Add user-provided options as keyword arguments
+        safe_args: list[str] = []
         i = 0
         while i < len(self.yt_dlp_additional_options):
             opt = self.yt_dlp_additional_options[i]
             if opt.startswith("--"):
-                key = opt[2:].replace("-", "_")
                 # Check if next option is a value (not another flag)
                 if i + 1 < len(self.yt_dlp_additional_options) and not self.yt_dlp_additional_options[i + 1].startswith("--"):
                     value = self.yt_dlp_additional_options[i + 1]
@@ -294,15 +319,17 @@ class VideoDataLoader:
                     if not _is_safe_option_value(value):
                         logger.warning(
                             "Skipping unsafe yt-dlp option value",
-                            extra={"key": key, "value_length": len(value)},
+                            extra={"key": opt, "value_length": len(value)},
                         )
                         i += 2
                         continue
-                    opts[key] = value
+                    safe_args.extend((opt, value))
                     i += 1
                 else:
-                    opts[key] = True
+                    safe_args.append(opt)
             i += 1
+        if safe_args:
+            opts.update(_cli_args_to_ydl_opts(safe_args))
         return opts
 
     def _get_video_hash(self, url: str) -> str:
