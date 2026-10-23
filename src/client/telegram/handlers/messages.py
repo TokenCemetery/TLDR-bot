@@ -184,7 +184,12 @@ async def handle_message(  # noqa: C901, PLR0911
         )
         await message.reply(
             text=markdown_to_telegram_html(chunk),
-            link_preview_options=LinkPreviewOptions(is_disabled=False, url=document.url, show_above_text=True, prefer_small_media=True),
+            link_preview_options=LinkPreviewOptions(
+                is_disabled=False,
+                url=document.thumbnail or document.url,
+                show_above_text=True,
+                prefer_large_media=True,
+            ),
         )
 
     logger.info(

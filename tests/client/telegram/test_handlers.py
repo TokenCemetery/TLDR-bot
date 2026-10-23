@@ -96,14 +96,21 @@ async def test_bot_handle_message_multiple_urls(mock_deps: MagicMock, mock_messa
 
 
 @pytest.mark.asyncio
-async def test_bot_handle_message_success(mock_deps: MagicMock, mock_message: MagicMock) -> None:
+@pytest.mark.parametrize(
+    ("thumbnail", "expected_preview_url"),
+    [
+        ("https://i.ytimg.com/vi/123/maxresdefault.jpg", "https://i.ytimg.com/vi/123/maxresdefault.jpg"),
+        ("", "https://youtube.com/watch?v=123"),
+    ],
+)
+async def test_bot_handle_message_success(mock_deps: MagicMock, mock_message: MagicMock, thumbnail: str, expected_preview_url: str) -> None:
     document = ContentDocument(
         id="123",
         source_type="video",
         url="https://youtube.com/watch?v=123",
         language="en",
         title="Test Video",
-        thumbnail="",
+        thumbnail=thumbnail,
         content="Test transcript",
         metadata={"uploader": "test"},
     )
@@ -126,6 +133,9 @@ async def test_bot_handle_message_success(mock_deps: MagicMock, mock_message: Ma
         # Original message reply for processing, and second reply for final result
         expected_calls = 2
         assert mock_message.reply.call_count == expected_calls
+        preview = mock_message.reply.call_args.kwargs["link_preview_options"]
+        assert preview.url == expected_preview_url
+        assert preview.show_above_text is True
         processing_msg_mock.delete.assert_called_once()
 
 
