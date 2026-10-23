@@ -186,7 +186,6 @@ class VideoDataLoader:
             },
         )
 
-        # Extract video info with retries
         last_error: Exception | None = None
         for attempt in range(max_attempts):
             try:
@@ -218,7 +217,6 @@ class VideoDataLoader:
         language = self._detect_language(info)
         logger.debug("Detected transcript language", extra={"url": url, "language": language})
 
-        # Download subtitles with retries
         ydl_logger = YtDlpCaptureLogger()
         for attempt in range(max_attempts):
             try:
@@ -312,7 +310,6 @@ class VideoDataLoader:
         while i < len(self.yt_dlp_additional_options):
             opt = self.yt_dlp_additional_options[i]
             if opt.startswith("--"):
-                # Check if next option is a value (not another flag)
                 if i + 1 < len(self.yt_dlp_additional_options) and not self.yt_dlp_additional_options[i + 1].startswith("--"):
                     value = self.yt_dlp_additional_options[i + 1]
                     # Validate value to prevent injection attacks
@@ -369,11 +366,9 @@ class VideoDataLoader:
         if not info.subtitles:
             raise RuntimeError("no subtitles available")
 
-        # Fallback to English if exists
         if "en" in info.subtitles:
             return "en"
 
-        # Get first available language from subtitles
         return next(iter(info.subtitles.keys())).split("-", maxsplit=1)[0]
 
     def _find_subtitle_file(self, video_id: str, language: str) -> Path | None:

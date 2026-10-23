@@ -157,7 +157,6 @@ def test_markdown_to_telegram_html_with_strike_tag() -> None:
 def test_markdown_to_telegram_html_collapses_multiple_newlines() -> None:
     md_text = "First paragraph.\n\n\n\nSecond paragraph."
     result = markdown_to_telegram_html(md_text)
-    # Multiple newlines should be collapsed to single newline
     assert "\n\n\n" not in result
     assert result.count("\n") < md_text.count("\n")
 
@@ -165,5 +164,4 @@ def test_markdown_to_telegram_html_collapses_multiple_newlines() -> None:
 def test_markdown_to_telegram_html_with_headers_collapses_newlines() -> None:
     md_text = "# Header\n\n\n\nParagraph"
     result = markdown_to_telegram_html(md_text)
-    # Should not have multiple consecutive newlines
     assert "\n\n\n" not in result

@@ -42,7 +42,6 @@ async def test_openai_summarizer_initialization() -> None:
 
         summarizer = OpenAISummarizer(mock_settings)
 
-        # Verify the client was initialized with correct settings
         mock_openai_class.assert_called_once_with(
             base_url="https://api.openai.com/v1/",
             api_key="test-key",
@@ -101,7 +100,7 @@ async def test_summarizer_summarize_text_empty_response() -> None:
         mock_choice = MagicMock()
         mock_message = MagicMock()
 
-        mock_message.content = None  # Empty response
+        mock_message.content = None
         mock_choice.message = mock_message
         mock_response.choices = [mock_choice]
         # Set response attributes to avoid dynamic mock creation during logging

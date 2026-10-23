@@ -29,7 +29,6 @@ COMPRESSION_PREFIXES = {
     CompressionMethod.LZMA: b"\x03",
 }
 
-# Reverse mapping for decompression
 PREFIX_TO_METHOD = {v: k for k, v in COMPRESSION_PREFIXES.items()}
 
 

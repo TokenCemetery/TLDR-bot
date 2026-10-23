@@ -9,7 +9,6 @@ from src.logger import configure_logging
 
 
 def test_configure_logging_default() -> None:
-    # Ensure no LOG_LEVEL is set
     with (
         patch.dict(os.environ, {}, clear=True),
         patch("src.logger.logging.getLogger") as mock_get_logger,
@@ -20,7 +19,6 @@ def test_configure_logging_default() -> None:
         mock_httpx_logger = MagicMock()
         mock_handler = MagicMock()
 
-        # Return different loggers based on name
         def get_logger_side_effect(name: str | None = None) -> MagicMock:
             if name == "httpx":
                 return mock_httpx_logger
@@ -32,20 +30,14 @@ def test_configure_logging_default() -> None:
 
         configure_logging()
 
-        # Verify root logger level was set to INFO (20)
         mock_root_logger.setLevel.assert_called_with(logging.INFO)
-        # Verify handler was added
         mock_root_logger.addHandler.assert_called_once_with(mock_handler)
-        # Verify handler level was set
         mock_handler.setLevel.assert_called_with(logging.INFO)
-        # Verify formatter was set
         mock_handler.setFormatter.assert_called_once()
-        # Verify httpx logger level was set to WARNING
         mock_httpx_logger.setLevel.assert_called_with(logging.WARNING)
 
 
 def test_configure_logging_custom_level() -> None:
-    # Set a custom log level
     with (
         patch.dict(os.environ, {"LOG_LEVEL": "DEBUG"}),
         patch("src.logger.logging.getLogger") as mock_get_logger,
@@ -56,7 +48,6 @@ def test_configure_logging_custom_level() -> None:
         mock_httpx_logger = MagicMock()
         mock_handler = MagicMock()
 
-        # Return different loggers based on name
         def get_logger_side_effect(name: str | None = None) -> MagicMock:
             if name == "httpx":
                 return mock_httpx_logger
@@ -68,16 +59,12 @@ def test_configure_logging_custom_level() -> None:
 
         configure_logging()
 
-        # Verify root logger level was set to DEBUG (10)
         mock_root_logger.setLevel.assert_called_with(logging.DEBUG)
-        # Verify handler was added
         mock_root_logger.addHandler.assert_called_once_with(mock_handler)
-        # Verify handler level was set
         mock_handler.setLevel.assert_called_with(logging.DEBUG)
 
 
 def test_configure_logging_invalid_level() -> None:
-    # Set an invalid log level - should default to INFO
     with (
         patch.dict(os.environ, {"LOG_LEVEL": "INVALID_LEVEL"}),
         patch("src.logger.logging.getLogger") as mock_get_logger,
@@ -88,7 +75,6 @@ def test_configure_logging_invalid_level() -> None:
         mock_httpx_logger = MagicMock()
         mock_handler = MagicMock()
 
-        # Return different loggers based on name
         def get_logger_side_effect(name: str | None = None) -> MagicMock:
             if name == "httpx":
                 return mock_httpx_logger
@@ -100,14 +86,11 @@ def test_configure_logging_invalid_level() -> None:
 
         configure_logging()
 
-        # Verify root logger level was set to INFO (default for invalid level)
         mock_root_logger.setLevel.assert_called_with(logging.INFO)
-        # Verify handler was added
         mock_root_logger.addHandler.assert_called_once_with(mock_handler)
 
 
 def test_configure_logging_removes_existing_handlers() -> None:
-    # Test that existing handlers are removed before adding new one
     with (
         patch("src.logger.logging.getLogger") as mock_get_logger,
         patch("src.logger.logging.StreamHandler") as mock_handler_class,
@@ -129,14 +112,11 @@ def test_configure_logging_removes_existing_handlers() -> None:
 
         configure_logging()
 
-        # Verify existing handler was removed
         mock_root_logger.removeHandler.assert_called_with(mock_existing_handler)
-        # Verify new handler was added
         mock_root_logger.addHandler.assert_called_with(mock_handler)
 
 
 def test_configure_logging_uses_custom_formatter() -> None:
-    # Test that CustomFormatter is used
     with (
         patch("src.logger.logging.getLogger") as mock_get_logger,
         patch("src.logger.logging.StreamHandler") as mock_handler_class,
@@ -160,14 +140,11 @@ def test_configure_logging_uses_custom_formatter() -> None:
 
         configure_logging()
 
-        # Verify CustomFormatter was created with correct format
         mock_formatter_class.assert_called_once()
-        # Verify formatter was set on handler
         mock_handler.setFormatter.assert_called_once_with(mock_formatter)
 
 
 def test_configure_logging_httpx_warning() -> None:
-    # Test that httpx logger is set to WARNING
     with (
         patch("src.logger.logging.getLogger") as mock_get_logger,
         patch("src.logger.logging.StreamHandler") as mock_handler_class,
@@ -187,13 +164,11 @@ def test_configure_logging_httpx_warning() -> None:
 
         configure_logging()
 
-        # Verify httpx logger level was set to WARNING
         mock_httpx_logger.setLevel.assert_called_with(logging.WARNING)
 
 
 @pytest.mark.asyncio
 async def test_main_function_initializes_and_runs() -> None:
-    # Mock all dependencies to test the main flow
     with (
         patch("src.client.telegram.main.Settings") as mock_settings,
         patch("src.client.telegram.main.get_cache_provider") as mock_get_cache_provider,
@@ -213,10 +188,8 @@ async def test_main_function_initializes_and_runs() -> None:
         mock_bot_obj = MagicMock()
         mock_bot_class.return_value = mock_bot_obj
 
-        # Call main function
         await main()
 
-        # Verify all steps were called in sequence
         mock_settings.from_env.assert_called_once()
         mock_get_cache_provider.assert_called_once_with(mock_settings_obj)
         mock_dispatcher_class.assert_called_once()
@@ -232,8 +205,6 @@ async def test_main_function_initializes_and_runs() -> None:
 
 
 def test_main_function_structure() -> None:
-    # Just test that the main function exists and has the expected structure
-    # by checking it has the expected attributes
     assert callable(main)
     assert inspect.iscoroutinefunction(main)
     assert hasattr(main, "__name__")

@@ -101,7 +101,6 @@ VKVIDEO = RegexProvider(
     canonical_url="https://vkvideo.ru/%s",
 )
 
-# Ordered tuple of all supported video providers
 PROVIDERS: tuple[RegexProvider, ...] = (YOUTUBE, YOUTUBE_SHORT, VKVIDEO)
 
 

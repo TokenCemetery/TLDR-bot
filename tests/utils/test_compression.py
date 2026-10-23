@@ -42,10 +42,8 @@ class TestCompressionMethods:
     )
     def test_compression_savings(self, method: CompressionMethod) -> None:
         """Test that compression actually reduces data size for reasonable input."""
-        # Create repetitive text that compresses well
         original_data = b"A" * 1000 + b"B" * 1000 + b"C" * 1000
         compressed = compress(original_data, method)
-        # Should compress to less than original (including prefix byte)
         assert len(compressed) < len(original_data)
 
     def test_none_compression_no_savings(self) -> None:
@@ -67,7 +65,6 @@ class TestCompressionMethods:
         compressed = compress(original_data, CompressionMethod.GZIP)
         decompressed = decompress(compressed)
         assert decompressed == original_data
-        # Should achieve significant compression
         assert len(compressed) < len(original_data) * 0.1  # At least 90% compression
 
     def test_binary_data(self) -> None:
@@ -114,7 +111,6 @@ class TestDecompressionErrors:
 
     def test_corrupted_data_raises_error(self) -> None:
         """Test that corrupted data raises CompressionError."""
-        # Create valid compressed data then corrupt it
         original = b"test data"
         compressed = compress(original, CompressionMethod.GZIP)
         # Corrupt the payload (keep prefix intact)
@@ -139,7 +135,7 @@ class TestCompressionStats:
         expected_original_size = 1000
         assert stats["original_size"] == expected_original_size
         assert stats["compressed_size"] == len(compressed)
-        assert 0 < stats["ratio"] < 1  # Should be compressed
+        assert 0 < stats["ratio"] < 1
         assert stats["savings_percent"] > 0
 
     def test_empty_original_data(self) -> None:
@@ -161,7 +157,6 @@ class TestCompressionStats:
         zlib_stats = get_compression_stats(original, zlib_compressed)
         lzma_stats = get_compression_stats(original, lzma_compressed)
 
-        # All should achieve significant compression
         max_ratio = 0.1
         assert gzip_stats["ratio"] < max_ratio
         assert zlib_stats["ratio"] < max_ratio

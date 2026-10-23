@@ -72,18 +72,14 @@ def configure_logging() -> None:
     level_name = os.getenv("LOG_LEVEL", "INFO").upper()
     level = getattr(logging, level_name, logging.INFO)
 
-    # Get or create root handler
     root_logger = logging.getLogger()
     root_logger.setLevel(level)
 
-    # Set libraries custom levels
     logging.getLogger("httpx").setLevel(logging.WARNING)
 
-    # Remove existing handlers to avoid duplicates
     for handler in root_logger.handlers[:]:
         root_logger.removeHandler(handler)
 
-    # Create console handler with custom formatter
     handler = logging.StreamHandler()
     handler.setLevel(level)
     handler.setFormatter(

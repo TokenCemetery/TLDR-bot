@@ -42,10 +42,8 @@ def markdown_to_telegram_html(md_text: str) -> str:
     raw_html = markdown.markdown(md_text, extensions=["extra", "codehilite"])
     soup = BeautifulSoup(raw_html, "html.parser")
 
-    # Replace unsupported tags
     for tag in soup.find_all(True):
         if tag.name not in ALLOWED_TAGS:
-            # Replace headers with bold text
             if tag.name in HEADER_TAGS:
                 tag.name = "strong"
                 tag.insert_before("\n")
@@ -56,6 +54,5 @@ def markdown_to_telegram_html(md_text: str) -> str:
                 tag.unwrap()
 
     result = str(soup).strip()
-    # Replace multiple consecutive newlines with a single pair
     result = re.sub(r"\n{3,}", "\n\n", result)
     return result

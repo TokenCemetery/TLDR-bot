@@ -46,7 +46,6 @@ def test_settings_from_env_success() -> None:
 
 @patch("src.config.load_dotenv")
 def test_settings_from_env_missing_required_variables(mock_load_dotenv: MagicMock) -> None:
-    # Test with missing TELEGRAM_BOT_TOKEN
     with patch.dict(
         os.environ,
         {"OPENAI_API_KEY": "test_api_key", "OPENAI_MODEL": "gpt-3.5-turbo"},
@@ -55,7 +54,6 @@ def test_settings_from_env_missing_required_variables(mock_load_dotenv: MagicMoc
         with pytest.raises(RuntimeError, match="TELEGRAM_BOT_TOKEN"):
             Settings.from_env()
 
-    # Test with missing OPENAI_API_KEY
     with patch.dict(
         os.environ,
         {"TELEGRAM_BOT_TOKEN": "test_token", "OPENAI_MODEL": "gpt-3.5-turbo"},
@@ -64,7 +62,6 @@ def test_settings_from_env_missing_required_variables(mock_load_dotenv: MagicMoc
         with pytest.raises(RuntimeError, match="OPENAI_API_KEY"):
             Settings.from_env()
 
-    # Test with missing OPENAI_MODEL
     with patch.dict(
         os.environ,
         {"TELEGRAM_BOT_TOKEN": "test_token", "OPENAI_API_KEY": "test_api_key"},
@@ -91,7 +88,6 @@ def test_settings_from_env_default_values(mock_load_dotenv: MagicMock) -> None:
         expected_msg_len = DEFAULT_MAX_TELEGRAM_MESSAGE_LENGTH
         expected_timeout = DEFAULT_OPENAI_TIMEOUT_SECONDS
         expected_retries = DEFAULT_OPENAI_MAX_RETRIES
-        # Check default values
         assert settings.openai_base_url == DEFAULT_OPENAI_BASE_URL
         assert settings.rate_limit_window_seconds == expected_rate_limit
         assert settings.max_telegram_message_length == expected_msg_len

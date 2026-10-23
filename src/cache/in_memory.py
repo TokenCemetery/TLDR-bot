@@ -20,7 +20,6 @@ class InMemoryCacheProvider(CacheProvider):
         self._rate_limits: dict[int, float] = {}
         self._rate_limit_lock = asyncio.Lock()
 
-        # Caches
         self._cache: dict[str, tuple[bytes, float]] = {}
         self._cache_dict: dict[str, tuple[bytes, float]] = {}
         self._cache_lock = asyncio.Lock()

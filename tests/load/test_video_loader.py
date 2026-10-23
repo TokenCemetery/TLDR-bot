@@ -126,14 +126,13 @@ def test_detect_language_with_video_info_language() -> None:
 
     info = VideoInfo(
         id="test_id",
-        language="es-ES",  # Full language code with region
+        language="es-ES",
         uploader="test_uploader",
         title="test_title",
         thumbnail="test_thumbnail",
         subtitles={},
     )
 
-    # Should return base language without region
     assert loader._detect_language(info) == "es"
 
 
@@ -142,14 +141,13 @@ def test_detect_language_with_subtitles_en_priority() -> None:
 
     info = VideoInfo(
         id="test_id",
-        language="",  # No language specified
+        language="",
         uploader="test_uploader",
         title="test_title",
         thumbnail="test_thumbnail",
-        subtitles={"en": [], "es": []},  # English available
+        subtitles={"en": [], "es": []},
     )
 
-    # Should prefer English when available
     assert loader._detect_language(info) == "en"
 
 
@@ -158,14 +156,13 @@ def test_detect_language_with_subtitles_first_available() -> None:
 
     info = VideoInfo(
         id="test_id",
-        language="",  # No language specified
+        language="",
         uploader="test_uploader",
         title="test_title",
         thumbnail="test_thumbnail",
-        subtitles={"fr-FR": [], "de": []},  # No English available
+        subtitles={"fr-FR": [], "de": []},
     )
 
-    # Should return first available language (fr)
     assert loader._detect_language(info) == "fr"
 
 
@@ -174,14 +171,13 @@ def test_detect_language_no_subtitles_or_language() -> None:
 
     info = VideoInfo(
         id="test_id",
-        language="",  # No language specified
+        language="",
         uploader="test_uploader",
         title="test_title",
         thumbnail="test_thumbnail",
-        subtitles={},  # No subtitles available
+        subtitles={},
     )
 
-    # Should raise RuntimeError when no subtitles available
     with pytest.raises(RuntimeError, match="no subtitles available"):
         loader._detect_language(info)
 
@@ -246,7 +242,6 @@ def test_build_ydl_opts_rejects_invalid_flag() -> None:
 
 @patch("yt_dlp.YoutubeDL")
 def test_load_success(mock_youtube_dl_class: MagicMock) -> None:
-    # Mock the context manager
     mock_ydl = MagicMock()
     mock_ydl.__enter__ = MagicMock(return_value=mock_ydl)
     mock_ydl.__exit__ = MagicMock(return_value=False)
@@ -266,7 +261,6 @@ def test_load_success(mock_youtube_dl_class: MagicMock) -> None:
         None,  # Download returns None
     ]
 
-    # Mock subtitle file
     mock_subtitle_file = MagicMock()
     mock_subtitle_file.read_text.return_value = "1\n00:00:00,000 --> 00:00:01,000\nTest subtitle"
     mock_subtitle_file.exists.return_value = True
@@ -283,7 +277,6 @@ def test_load_success(mock_youtube_dl_class: MagicMock) -> None:
 
 @patch("yt_dlp.YoutubeDL")
 def test_load_retry_on_info_failure(mock_youtube_dl_class: MagicMock) -> None:
-    # Mock the context manager
     mock_ydl = MagicMock()
     mock_ydl.__enter__ = MagicMock(return_value=mock_ydl)
     mock_ydl.__exit__ = MagicMock(return_value=False)
@@ -304,7 +297,6 @@ def test_load_retry_on_info_failure(mock_youtube_dl_class: MagicMock) -> None:
         None,  # Download returns None
     ]
 
-    # Mock subtitle file
     mock_subtitle_file = MagicMock()
     mock_subtitle_file.read_text.return_value = "1\n00:00:00,000 --> 00:00:01,000\nTest subtitle"
     mock_subtitle_file.exists.return_value = True
@@ -321,13 +313,11 @@ def test_load_retry_on_info_failure(mock_youtube_dl_class: MagicMock) -> None:
 
 @patch("yt_dlp.YoutubeDL")
 def test_load_failure_all_attempts(mock_youtube_dl_class: MagicMock) -> None:
-    # Mock the context manager
     mock_ydl = MagicMock()
     mock_ydl.__enter__ = MagicMock(return_value=mock_ydl)
     mock_ydl.__exit__ = MagicMock(return_value=False)
     mock_youtube_dl_class.return_value = mock_ydl
 
-    # Always fail
     mock_ydl.extract_info.side_effect = Exception("Network error")
 
     loader = VideoDataLoader(build_settings())
@@ -337,7 +327,6 @@ def test_load_failure_all_attempts(mock_youtube_dl_class: MagicMock) -> None:
 
 @patch("yt_dlp.YoutubeDL")
 def test_load_no_subtitles_found(mock_youtube_dl_class: MagicMock) -> None:
-    # Mock the context manager
     mock_ydl = MagicMock()
     mock_ydl.__enter__ = MagicMock(return_value=mock_ydl)
     mock_ydl.__exit__ = MagicMock(return_value=False)
@@ -368,11 +357,9 @@ def test_is_safe_option_value() -> None:
     assert _is_safe_option_value("https://example.com") is True
     assert _is_safe_option_value("/app/data/cookies.txt") is True
 
-    # Path traversal
     assert _is_safe_option_value("../unsafe") is False
     assert _is_safe_option_value("/app/../etc/passwd") is False
 
-    # Shell injection
     assert _is_safe_option_value("val; rm -rf /") is False
     assert _is_safe_option_value("val|ls") is False
     assert _is_safe_option_value("val&ls") is False
@@ -382,7 +369,6 @@ def test_is_safe_option_value() -> None:
 
 
 def test_ydl_opts_filters_unsafe_values() -> None:
-    # Include an unsafe option value
     unsafe_settings = build_settings(yt_dlp_additional_options=("--format", "mp4", "--outtmpl", "../etc/passwd"))
     loader = VideoDataLoader(unsafe_settings)
     opts = loader._build_ydl_opts()

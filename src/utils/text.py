@@ -81,7 +81,6 @@ def _find_natural_breakpoint(text: str, left: int, right: int) -> int:
     if paragraph_idx > 0:
         return left + paragraph_idx + 1
 
-    # Find the rightmost sentence boundary
     sentence_idx = max(piece.rfind("."), piece.rfind("!"), piece.rfind("?"))
     if sentence_idx > 0:
         return left + sentence_idx + 1

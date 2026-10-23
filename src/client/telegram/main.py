@@ -33,7 +33,6 @@ async def main() -> None:
     loader = VideoDataLoader(settings)
     summarizer = OpenAISummarizer(settings)
 
-    # aiogram setup
     dp = Dispatcher()
     dp.include_routers(commands_router, messages_router, errors_router)
 

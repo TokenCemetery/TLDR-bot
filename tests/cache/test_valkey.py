@@ -56,11 +56,9 @@ async def test_valkey_set_get_summary(provider: ValkeyProvider) -> None:
         mock_client.get.return_value = expected_value
         mock_valkey.from_url.return_value = mock_client
 
-        # Test put
         await provider.put("summary:hash123:en", "test summary", 3600)
         mock_client.setex.assert_called_with("summary:hash123:en:none", 3600, expected_value)
 
-        # Test get
         text = await provider.get("summary:hash123:en")
         assert text == "test summary"
         mock_client.get.assert_called_with("summary:hash123:en:none")
@@ -100,19 +98,15 @@ async def test_valkey_set_get_summary_multiple_languages(provider: ValkeyProvide
         mock_client.get.side_effect = mock_get
         mock_valkey.from_url.return_value = mock_client
 
-        # Test put "en"
         await provider.put("summary:hash123:en", "english summary", 3600)
         mock_client.setex.assert_any_call("summary:hash123:en:none", 3600, b"\x00english summary")
 
-        # Test put "es"
         await provider.put("summary:hash123:es", "spanish summary", 3600)
         mock_client.setex.assert_any_call("summary:hash123:es:none", 3600, b"\x00spanish summary")
 
-        # Test get "en"
         summary_en = await provider.get("summary:hash123:en")
         assert summary_en == "english summary"
 
-        # Test get "es"
         summary_es = await provider.get("summary:hash123:es")
         assert summary_es == "spanish summary"
 
@@ -126,11 +120,9 @@ async def test_valkey_set_get_transcript(provider: ValkeyProvider) -> None:
         mock_client.get.return_value = expected_value
         mock_valkey.from_url.return_value = mock_client
 
-        # Test put
         await provider.put_dict("transcript:hash123", {"text": "hello"}, 3600)
         mock_client.setex.assert_called_with("transcript:hash123:none", 3600, expected_value)
 
-        # Test get
         data = await provider.get_dict("transcript:hash123")
         assert data == {"text": "hello"}
         mock_client.get.assert_called_with("transcript:hash123:none")
@@ -151,7 +143,6 @@ async def test_valkey_set_get_transcript_with_compression(provider_with_compress
         mock_client.get.return_value = compressed_data
         mock_valkey.from_url.return_value = mock_client
 
-        # Test get
         data = await provider_with_compression.get_dict("transcript:hash123")
         assert data == original_transcript
         mock_client.get.assert_called_with("transcript:hash123:gzip")

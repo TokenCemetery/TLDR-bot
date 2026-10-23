@@ -61,20 +61,16 @@ def testnormalize_locale_with_extra_spaces() -> None:
 
 
 def test_setup_i18n_called_once() -> None:
-    # Mock i18n module functions
     with patch("src.localization.i18n") as mock_i18n:
-        # Call setup twice to ensure it only executes once
         _setup_i18n()
         _setup_i18n()
 
-        # Check that the setup methods were called only once
         assert mock_i18n.load_path.append.called
         expected_set_calls = 6
-        assert mock_i18n.set.call_count == expected_set_calls  # Exactly 6 set calls
+        assert mock_i18n.set.call_count == expected_set_calls
 
 
 def test_translate_basic() -> None:
-    # Mock i18n translation
     with patch("src.localization.i18n") as mock_i18n:
         mock_i18n.t.return_value = "Translated text"
         mock_i18n.fallback = DEFAULT_LOCALE
@@ -86,7 +82,6 @@ def test_translate_basic() -> None:
 
 
 def test_translate_with_kwargs() -> None:
-    # Mock i18n translation with kwargs
     with patch("src.localization.i18n") as mock_i18n:
         mock_i18n.t.return_value = "Hello John!"
 
@@ -97,20 +92,17 @@ def test_translate_with_kwargs() -> None:
 
 
 def test_translate_fallback_to_default_locale() -> None:
-    # Mock i18n to raise exception for first locale but succeed for fallback
     with patch("src.localization.i18n") as mock_i18n:
         mock_i18n.t.side_effect = [Exception("Not found"), "Fallback translation"]
 
         result = translate("some.key", locale="nonexistent")
 
-        # Should try the requested locale first, then fall back to default
         assert result == "Fallback translation"
         expected_t_calls = 2
         assert mock_i18n.t.call_count == expected_t_calls
 
 
 def test_translate_returns_key_if_not_found() -> None:
-    # Mock i18n to raise exceptions for both locales
     with patch("src.localization.i18n") as mock_i18n:
         mock_i18n.t.side_effect = [
             Exception("Not found"),
@@ -119,7 +111,6 @@ def test_translate_returns_key_if_not_found() -> None:
 
         result = translate("some.key", locale="nonexistent")
 
-        # Should return the key itself if no translation is found
         assert result == "some.key"
 
 
@@ -130,5 +121,4 @@ def test_translate_with_none_locale() -> None:
         result = translate("some.key")
 
         assert result == "Default translation"
-        # Should use default locale when none provided
         mock_i18n.t.assert_called_once_with("some.key", locale=DEFAULT_LOCALE)

@@ -28,7 +28,7 @@ class ValkeyProvider(CacheProvider):
         super().__init__(compression_method)
         self.valkey_url = valkey_url
         self._valkey: Valkey | None = None
-        self._timeout = 0.200  # 200ms timeout
+        self._timeout = 0.200
         self._init_lock = asyncio.Lock()
 
     async def _get_client(self) -> Valkey:
