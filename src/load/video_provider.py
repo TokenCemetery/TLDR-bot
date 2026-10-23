@@ -89,13 +89,11 @@ YOUTUBE = RegexProvider(
     canonical_url="https://www.youtube.com/watch?v=%s",
 )
 
-# YouTube Shorts URL pattern (youtube.com/shorts/ID)
 YOUTUBE_SHORT = RegexProvider(
     pattern=re.compile(r"(?:https?://)?(?:www\.)?youtube\.com/shorts/([A-Za-z0-9_-]{11})"),
     canonical_url="https://www.youtube.com/shorts/%s",
 )
 
-# VK Video URL pattern (vkvideo.ru/video-ID)
 VKVIDEO = RegexProvider(
     pattern=re.compile(r"(?:https?://)?(?:www\.)?vkvideo\.ru/(video-\d+_\d+)"),
     canonical_url="https://vkvideo.ru/%s",

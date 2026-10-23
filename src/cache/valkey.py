@@ -64,7 +64,6 @@ class ValkeyProvider(CacheProvider):
             pipeline.expire(key, window_seconds, nx=True)
             result = await pipeline.execute()
 
-            # result[0] is the response of INCR
             count = result[0]
             if count > 1:
                 return True

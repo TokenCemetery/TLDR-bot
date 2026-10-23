@@ -27,7 +27,6 @@ class CustomFormatter(logging.Formatter):
             Formatted log message with extra fields appended.
         """
         base_message = super().format(record)
-        # Collect extra fields (those not in standard LogRecord attributes)
         standard_attrs = {
             "name",
             "msg",

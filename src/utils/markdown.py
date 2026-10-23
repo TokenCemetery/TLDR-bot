@@ -13,7 +13,6 @@ from bs4 import BeautifulSoup
 # Telegram-supported HTML tags
 ALLOWED_TAGS = frozenset(["b", "strong", "i", "em", "u", "ins", "s", "strike", "del", "a", "code", "pre"])
 
-# Header tags to convert to bold
 HEADER_TAGS = frozenset(["h1", "h2", "h3", "h4", "h5", "h6"])
 
 

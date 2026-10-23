@@ -282,7 +282,6 @@ def test_load_retry_on_info_failure(mock_youtube_dl_class: MagicMock) -> None:
     mock_ydl.__exit__ = MagicMock(return_value=False)
     mock_youtube_dl_class.return_value = mock_ydl
 
-    # Fail twice, succeed on third
     mock_ydl.extract_info.side_effect = [
         Exception("Network error"),
         Exception("Network error"),
@@ -332,7 +331,6 @@ def test_load_no_subtitles_found(mock_youtube_dl_class: MagicMock) -> None:
     mock_ydl.__exit__ = MagicMock(return_value=False)
     mock_youtube_dl_class.return_value = mock_ydl
 
-    # Info succeeds, download succeeds but no file found
     mock_ydl.extract_info.side_effect = [
         {
             "id": "test_id",
@@ -373,6 +371,5 @@ def test_ydl_opts_filters_unsafe_values() -> None:
     loader = VideoDataLoader(unsafe_settings)
     opts = loader._build_ydl_opts()
 
-    # The safe format should be included, but the unsafe outtmpl should be omitted
     assert opts.get("format") == "mp4"
     assert "outtmpl" not in opts

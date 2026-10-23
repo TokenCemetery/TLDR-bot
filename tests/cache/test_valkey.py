@@ -21,7 +21,7 @@ async def test_valkey_rate_limit_success(provider: ValkeyProvider) -> None:
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
         mock_pipeline = MagicMock()
-        mock_pipeline.execute = AsyncMock(return_value=[1])  # INCR result
+        mock_pipeline.execute = AsyncMock(return_value=[1])
         mock_client.pipeline = MagicMock(return_value=mock_pipeline)
         mock_valkey.from_url.return_value = mock_client
 
@@ -38,7 +38,7 @@ async def test_valkey_rate_limit_exceeded(provider: ValkeyProvider) -> None:
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
         mock_pipeline = MagicMock()
-        mock_pipeline.execute = AsyncMock(return_value=[2])  # INCR result > 1
+        mock_pipeline.execute = AsyncMock(return_value=[2])
         mock_client.pipeline = MagicMock(return_value=mock_pipeline)
         mock_valkey.from_url.return_value = mock_client
 
@@ -70,13 +70,11 @@ async def test_valkey_set_get_summary_with_compression(provider_with_compression
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
 
-        # Simulate compressed data
         original_summary = "test summary with compression"
         compressed_data = compress(original_summary.encode("utf-8"), CompressionMethod.GZIP)
         mock_client.get.return_value = compressed_data
         mock_valkey.from_url.return_value = mock_client
 
-        # Test get (data is already compressed in mock)
         text = await provider_with_compression.get("summary:hash123:en")
         assert text == original_summary
         mock_client.get.assert_called_with("summary:hash123:en:gzip")
@@ -87,7 +85,6 @@ async def test_valkey_set_get_summary_multiple_languages(provider: ValkeyProvide
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
 
-        # We will mock the .get() method to return different results based on the key
         def mock_get(key: str) -> bytes | None:
             if key == "summary:hash123:en:none":
                 return b"\x00english summary"
@@ -134,7 +131,6 @@ async def test_valkey_set_get_transcript_with_compression(provider_with_compress
     with patch("src.cache.valkey.Valkey") as mock_valkey:
         mock_client = AsyncMock()
 
-        # Simulate compressed transcript data
         original_transcript = {"text": "hello world", "duration": 120}
         compressed_data = compress(
             json.dumps(original_transcript).encode("utf-8"),

@@ -65,7 +65,7 @@ class TestCompressionMethods:
         compressed = compress(original_data, CompressionMethod.GZIP)
         decompressed = decompress(compressed)
         assert decompressed == original_data
-        assert len(compressed) < len(original_data) * 0.1  # At least 90% compression
+        assert len(compressed) < len(original_data) * 0.1
 
     def test_binary_data(self) -> None:
         """Test compression of binary data."""

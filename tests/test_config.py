@@ -137,7 +137,6 @@ def test_settings_immutability() -> None:
     ):
         settings = Settings.from_env()
 
-        # Attempt to modify should raise an exception since it's a frozen dataclass
         with pytest.raises(dataclasses.FrozenInstanceError):
             settings.telegram_bot_token = "new_token"  # type: ignore[misc]
 

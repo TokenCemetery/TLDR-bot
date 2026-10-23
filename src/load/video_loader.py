@@ -42,10 +42,8 @@ def _is_safe_option_value(value: str) -> bool:
     Returns:
         True if safe, False otherwise.
     """
-    # Block path traversal
     if ".." in value:
         return False
-    # Block shell metacharacters
     if any(char in value for char in (";", "|", "&", "$", "`", "(", ")", "<", ">", "\\", "\n", "\r")):
         return False
     return True

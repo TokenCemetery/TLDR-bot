@@ -34,9 +34,7 @@ def test_extract_urls_youtube_full_urls() -> None:
 def test_extract_urls_youtube_with_params() -> None:
     text = "Video: https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=1s&ab_channel=Channel"
     result = extract_urls(text)
-    # The extract_urls function extracts the full URLs that match the pattern
     assert len(result) == 1
-    # The result should be the full URL with parameters
     assert result[0] == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
 
 
@@ -57,12 +55,9 @@ def test_extract_urls_vkvideo() -> None:
 
 
 def test_extract_urls_mixed_providers() -> None:
-    # The extract_urls function returns URLs from the first provider that matches in the text
     # Since PROVIDERS = (YOUTUBE, YOUTUBE_SHORT, VKVIDEO), it will match YouTube URLs first
-    # Using proper 11-character IDs
     text = "YouTube: https://youtu.be/abcdefghijk, Shorts: https://www.youtube.com/shorts/klmnopqrstu, VK: https://vkvideo.ru/video-123_456"
     extracted = extract_urls(text)
-    # Should find YouTube URLs first since YOUTUBE is the first provider in PROVIDERS
     assert len(extracted) == 1
     assert extracted[0] == "https://youtu.be/abcdefghijk"
 

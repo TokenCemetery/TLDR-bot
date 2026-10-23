@@ -106,7 +106,7 @@ async def test_summarizer_summarize_text_empty_response() -> None:
         # Set response attributes to avoid dynamic mock creation during logging
         mock_response.id = "test_response_id"
         mock_response.model = "gpt-3.5-turbo"
-        mock_response.message = None  # Explicitly set to None to avoid mock creation
+        mock_response.message = None
         mock_client_instance.chat.completions.create = AsyncMock(return_value=mock_response)
 
         mock_openai_class.return_value = mock_client_instance
