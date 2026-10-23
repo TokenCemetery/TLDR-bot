@@ -1,53 +1,17 @@
 # AGENTS.md
 
-## Loaded Context
+## Documentation
 
-- For substantial work that needs durable product, technical, architecture, or design documentation, create a task folder under `docs/YYYY-MM-DD-task-name/`.
+- Project documentation lives in `docs/`; follow `docs/AGENTS.md` when writing it.
+- If a change affects behavior described by a project-scoped document, update that document in the same change.
 
-## Repository Behavior
+## Code Style
 
-- Repository contents are the source of truth. You MUST verify facts from generated artifacts, and prior notes against the repository before relying on them.
-- Keep the change limited to the minimum files and behavior required to satisfy the user's request.
-- You MUST NOT refactor, reformat, delete, rename, or improve unrelated or adjacent code, documentation, or configuration without explicit user approval.
-- If the requested change affects behavior described by a project-scoped document, you MUST update that document in the same change.
-- In final responses after changes, you MUST report what changed, what verification ran, and any assumption or residual risk that still matters.
-
-## Before Editing
-
-- A change is non-trivial when it affects behavior, multiple files, shared interfaces, project structure, dependencies, generated artifacts, or project-scoped documentation.
-- Before editing files for any non-trivial change, you MUST state the requested outcome and scope, working assumptions, simplest viable approach, verification plan, and any ambiguity that could materially change behavior or scope.
-- You MUST NOT edit files for a non-trivial change until that pre-edit statement is complete.
-- If an ambiguity could materially change behavior or scope, stop and ask one concise question before editing. Otherwise, state the reasonable assumption and proceed.
-
-## Artifact Quality
-
-- Every artifact created or materially modified for the request MUST be complete, directly actionable, internally consistent, and specific enough to verify.
-- Vendored, and third-party files are exempt from editorial quality requirements, but you MUST regenerate or validate them using the repository's established workflow.
-- You MUST NOT leave placeholders, `TODO` markers, unsupported claims, unresolved ambiguity, or missing required sections unless the user explicitly requests an incomplete draft.
-- Every section, example, step, abstraction, and file MUST contribute to the requested outcome, understanding, behavior, or verification. Remove anything that does not.
-- Examples MUST be narrow, direct, complete, and consistent with the repository's actual interfaces and conventions.
-- Code and design artifacts MUST preserve clear responsibilities, isolate change-prone behavior where practical, and keep interfaces no larger than required.
-- Introduce an abstraction only when it reduces concrete complexity or duplication, isolates meaningful change, or follows an established repository pattern.
-- You MUST NOT add speculative features, unused extension points, single-use abstractions, or configurability that the user did not request.
-- KISS governs artifact design: prefer the simplest complete solution that satisfies the request and verification criteria.
-- If an implementation grows noticeably larger or more complex than the problem requires, you MUST simplify it before finalizing.
-- Before presenting or completing any non-trivial artifact, you MUST self-review it for placeholders, contradictions, ambiguity, unnecessary content, unsupported claims, scope drift, and missing verification.
-- You MUST fix issues found during self-review before presenting the artifact. Do not merely report defects that you can correct.
-
-## Code Style and Agent Rules
-
-- **Python strict mode:** Newly written or materially modified first-party Python code MUST pass the repository's strict `mypy` configuration.
-- **Object-oriented programming:** Use classes when state, lifecycle, polymorphism, or an established repository pattern requires them. Otherwise, prefer the simplest clear implementation.
-- **Style Guide:** Follow PEP8 conventions and use `ruff` for formatting and linting.
-- **Type Hinting:** Newly written or materially modified first-party Python code MUST include type hints and return types.
 - **Docstrings:** Use Google style docstrings for all public modules and classes.
 - **Error Handling:** Raise domain-specific exceptions; never swallow errors silently.
-- **Verification:** For Python changes, run `.venv/bin/ruff check .`, `.venv/bin/ruff format --check .`, `.venv/bin/mypy .`, and the smallest relevant `.venv/bin/python -m pytest` target when those tools are available.
+- **Verification:** For Python changes, run `.venv/bin/ruff check .`, `.venv/bin/ruff format --check .`, `.venv/bin/mypy .` (strict), and the smallest relevant `.venv/bin/python -m pytest` target.
 
-### Mandatory Architecture Rules
+## Architecture Rules
 
 - **`__init__.py` is an Entry Point:** It MUST ONLY contain re-exports or package wiring. No business logic or utility functions allowed here.
 - **No Catch-All Files:** Names like `utils.py`, `helpers.py`, or `services.py` are BANNED. Use domain-specific names (e.g., `yt_dlp_handler.py`, `date_formatter.py`).
-- **Single Responsibility Principle:** Every first-party Python module MUST have one clear, nameable purpose. Split it when distinct responsibilities create concrete maintenance or verification difficulty.
-- **300 LOC Review Threshold:** When a materially modified first-party Python module exceeds 300 physical lines excluding blank lines, comments, docstrings, and prompt literals, evaluate whether splitting it would reduce concrete complexity. The threshold alone does not require a refactor.
-- **Scoped Refactoring:** Refactor an existing violation only when necessary to implement or verify the requested behavior safely. Otherwise, preserve the minimum-change rule and report any relevant residual risk.
