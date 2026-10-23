@@ -16,7 +16,7 @@ fi
 
 # Run linter if ruff is available
 if python3 -c "import ruff" >/dev/null 2>&1; then
-  python3 -m ruff ruff format --diff --target-version=py311
+  python3 -m ruff format --diff --target-version=py311
   python3 -m ruff check --target-version=py311
 else
   echo "⚠️  ruff is not installed, skipping lint."
