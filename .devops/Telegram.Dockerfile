@@ -2,9 +2,6 @@ FROM python:3.12-alpine
 
 WORKDIR /app
 
-# Install ffmpeg runtime (will be copied to final stage)
-RUN apk add --no-cache ffmpeg
-
 # Copy only pyproject.toml first for better layer caching
 COPY pyproject.toml ./
 

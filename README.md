@@ -31,7 +31,6 @@ A Telegram bot written in Python that summarizes Video content using LLM.
 ## Requirements
 
 - Python 3.11+
-- `ffmpeg` (recommended by yt-dlp)
 - `valkey` (optional, recommended for production scale and distributed rate-limiting)
 
 ## Quick Start
