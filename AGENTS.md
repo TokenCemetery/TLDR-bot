@@ -8,7 +8,7 @@
 ## Code Style
 
 - **Docstrings:** Use Google style docstrings for all public modules and classes.
-- **Error Handling:** Raise domain-specific exceptions; never swallow errors silently.
+- **Error Handling:** Raise domain-specific exceptions.
 - **Verification:** For Python changes, run `.venv/bin/ruff check .`, `.venv/bin/ruff format --check .`, `.venv/bin/mypy .` (strict), and the smallest relevant `.venv/bin/python -m pytest` target.
 
 ## Architecture Rules
