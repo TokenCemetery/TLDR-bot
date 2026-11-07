@@ -111,6 +111,7 @@ class OpenAISummarizer:
         )
         system_prompt = translate("openai.system_prompt", locale=locale)
         user_prompt = translate("openai.user_prompt", locale=locale)
+        document_prompt = f"<document>\n<title>{document.title}</title>\n<content>\n{document.content}\n</content>\n</document>"
 
         if self.settings.openai_max_retries <= 0:
             raise ValueError("openai_max_retries must be greater than 0")
@@ -124,8 +125,8 @@ class OpenAISummarizer:
                     {
                         "role": "user",
                         "content": [
+                            {"type": "text", "text": document_prompt},
                             {"type": "text", "text": user_prompt},
-                            {"type": "text", "text": document.content},
                         ],
                     },
                 ],

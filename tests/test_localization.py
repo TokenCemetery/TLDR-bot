@@ -4,7 +4,8 @@ from unittest.mock import patch
 import yaml
 from src.localization import DEFAULT_LOCALE, _setup_i18n, normalize_locale, translate
 
-EXPECTED_SYSTEM_PROMPT_RULES = 12
+EXPECTED_SYSTEM_PROMPT_SECTIONS = ("role", "rules", "output_format")
+EXPECTED_SYSTEM_PROMPT_BULLETS = 11
 
 
 def test_all_locales_define_openai_prompts() -> None:
@@ -14,9 +15,11 @@ def test_all_locales_define_openai_prompts() -> None:
         assert "user_prompt" in data["openai"], locale_file
         system_prompt = data["openai"]["system_prompt"]
         user_prompt = data["openai"]["user_prompt"]
-        assert system_prompt.startswith("<instructions>\n- "), locale_file
-        assert system_prompt.endswith("\n</instructions>"), locale_file
-        assert system_prompt.count("\n- ") == EXPECTED_SYSTEM_PROMPT_RULES, locale_file
+        for section in EXPECTED_SYSTEM_PROMPT_SECTIONS:
+            assert system_prompt.count(f"<{section}>\n") == 1, (locale_file, section)
+            assert system_prompt.count(f"\n</{section}>") == 1, (locale_file, section)
+        assert "<document>" in system_prompt, locale_file
+        assert system_prompt.count("\n- ") == EXPECTED_SYSTEM_PROMPT_BULLETS, locale_file
         assert user_prompt.startswith("<task>\n"), locale_file
         assert user_prompt.endswith("\n</task>"), locale_file
         assert "source.md" not in user_prompt, locale_file

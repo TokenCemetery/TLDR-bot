@@ -78,8 +78,11 @@ async def test_summarizer_summarize_text_success() -> None:
                     {
                         "role": "user",
                         "content": [
+                            {
+                                "type": "text",
+                                "text": "<document>\n<title>Test video</title>\n<content>\nInput text to summarize\n</content>\n</document>",
+                            },
                             {"type": "text", "text": "Summarize the document"},
-                            {"type": "text", "text": "Input text to summarize"},
                         ],
                     },
                 ],
