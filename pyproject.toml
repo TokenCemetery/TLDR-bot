@@ -55,10 +55,10 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/olegshulyakov/go-briefly-bot"
-Repository = "https://github.com/olegshulyakov/go-briefly-bot.git"
-Issues = "https://github.com/olegshulyakov/go-briefly-bot/issues"
-License = "https://github.com/olegshulyakov/go-briefly-bot/blob/main/LICENSE"
+Homepage = "https://github.com/tokencemetery/tldr-bot"
+Repository = "https://github.com/tokencemetery/tldr-bot.git"
+Issues = "https://github.com/tokencemetery/tldr-bot/issues"
+License = "https://github.com/tokencemetery/tldr-bot/blob/main/LICENSE"
 
 [tool.mypy]
 python_version = "3.11"

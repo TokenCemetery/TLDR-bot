@@ -159,7 +159,7 @@ See [tests/README.md](tests/README.md) for running the test suite and the prompt
 ### Build Image
 
 ```bash
-docker build -f .devops/Telegram.Dockerfile -t ghcr.io/olegshulyakov/go-briefly-bot .
+docker build -f .devops/Telegram.Dockerfile -t ghcr.io/tokencemetery/tldr-bot .
 ```
 
 ### Run Container
@@ -172,7 +172,7 @@ docker run -d \
   -e OPENAI_BASE_URL=https://api.openai.com/v1/ \
   -e OPENAI_API_KEY=your_key \
   -e OPENAI_MODEL=gpt-4o-mini \
-  ghcr.io/olegshulyakov/go-briefly-bot
+  ghcr.io/tokencemetery/tldr-bot
 ```
 
 ### Docker Compose
