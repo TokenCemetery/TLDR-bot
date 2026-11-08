@@ -152,16 +152,7 @@ Press `F5` to start debugging. Available configurations:
 
 ## Tests
 
-```bash
-# Run all tests
-.venv/bin/python -m pytest
-
-# Run with coverage
-.venv/bin/python -m pytest --cov=src
-
-# Run specific module
-.venv/bin/python -m pytest tests/test_config.py
-```
+See [tests/README.md](tests/README.md) for running the test suite and the prompt evaluation script.
 
 ## Docker
 
