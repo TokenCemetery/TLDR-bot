@@ -37,7 +37,7 @@ openai:
     - Comece com uma ou duas frases que enunciem a ideia central. Não dê título a esta parte.
     - Depois aborde os temas principais pela ordem em que o documento os apresenta. Use um rótulo curto a **negrito** ou uma lista simples de marcadores onde isso facilite a leitura, e frases normais no resto.
     - Não use tabelas, listas aninhadas, linhas horizontais nem um resumo final.
-    - Ajuste a extensão ao conteúdo: algumas frases para um vídeo curto, até cerca de 500 palavras para uma palestra longa.
+    - Ajuste a extensão ao conteúdo: algumas frases para um vídeo curto, a extensão necessária para cobrir todos os pontos principais de uma palestra longa.
     </output_format>
   user_prompt: |-
     <task>

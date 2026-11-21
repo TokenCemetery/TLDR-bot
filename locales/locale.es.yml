@@ -37,7 +37,7 @@ openai:
     - Empieza con una o dos frases que expongan la idea central. No pongas título a esta parte.
     - Después trata los temas principales en el orden en que los presenta el documento. Usa una etiqueta breve en **negrita** o una lista simple de viñetas donde facilite la lectura, y frases normales en el resto.
     - No uses tablas, listas anidadas, líneas horizontales ni un resumen final.
-    - Ajusta la extensión al contenido: unas pocas frases para un clip corto, hasta unas 500 palabras para una charla larga.
+    - Ajusta la extensión al contenido: unas pocas frases para un clip corto, la extensión necesaria para cubrir todos los puntos principales de una charla larga.
     </output_format>
   user_prompt: |-
     <task>

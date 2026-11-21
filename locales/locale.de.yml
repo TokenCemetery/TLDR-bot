@@ -37,7 +37,7 @@ openai:
     - Beginnen Sie mit ein oder zwei Sätzen, die die zentrale Idee benennen. Geben Sie diesem Teil keine Überschrift.
     - Behandeln Sie danach die Hauptthemen in der Reihenfolge des Dokuments. Verwenden Sie eine kurze **fette** Beschriftung oder eine einfache Aufzählung, wo das die Übersicht erleichtert, und sonst normale Sätze.
     - Verwenden Sie keine Tabellen, verschachtelten Listen, Trennlinien oder abschließende Zusammenfassung.
-    - Passen Sie die Länge dem Inhalt an: ein paar Sätze für einen kurzen Clip, bis zu etwa 500 Wörter für einen langen Vortrag.
+    - Passen Sie die Länge dem Inhalt an: ein paar Sätze für einen kurzen Clip, so lang wie nötig, um alle Hauptpunkte eines langen Vortrags abzudecken.
     </output_format>
   user_prompt: |-
     <task>

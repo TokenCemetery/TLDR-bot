@@ -37,7 +37,7 @@ openai:
     - Commencez par une ou deux phrases qui énoncent l'idée centrale. Ne donnez pas de titre à cette partie.
     - Traitez ensuite les thèmes principaux dans l'ordre du document. Utilisez un court libellé en **gras** ou une liste à puces simple là où cela facilite la lecture, et des phrases ordinaires ailleurs.
     - N'utilisez ni tableaux, ni listes imbriquées, ni lignes horizontales, ni récapitulatif final.
-    - Adaptez la longueur au contenu : quelques phrases pour une courte vidéo, jusqu'à environ 500 mots pour une longue intervention.
+    - Adaptez la longueur au contenu : quelques phrases pour une courte vidéo, la longueur nécessaire pour couvrir tous les points principaux d'une longue intervention.
     </output_format>
   user_prompt: |-
     <task>

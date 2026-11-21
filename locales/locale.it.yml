@@ -37,7 +37,7 @@ openai:
     - Inizia con una o due frasi che espongano l'idea centrale. Non dare un titolo a questa parte.
     - Poi tratta i temi principali nell'ordine in cui li presenta il documento. Usa una breve etichetta in **grassetto** o un semplice elenco puntato dove aiuta la lettura, e frasi normali altrove.
     - Non usare tabelle, elenchi annidati, linee orizzontali o un riepilogo finale.
-    - Adatta la lunghezza al contenuto: poche frasi per un breve video, fino a circa 500 parole per un intervento lungo.
+    - Adatta la lunghezza al contenuto: poche frasi per un breve video, la lunghezza necessaria a coprire tutti i punti principali di un intervento lungo.
     </output_format>
   user_prompt: |-
     <task>

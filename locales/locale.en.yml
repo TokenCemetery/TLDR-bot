@@ -37,7 +37,7 @@ openai:
     - Start with one or two sentences that state the central idea. Do not give this part a heading.
     - Then cover the main topics in the order the document presents them. Use a short **bold** label or a flat bullet list where it helps scanning, and plain sentences elsewhere.
     - Do not use tables, nested lists, horizontal rules, or a closing recap.
-    - Scale length to the content: a few sentences for a short clip, up to about 500 words for a long talk.
+    - Scale length to the content: a few sentences for a short clip, as long as needed to cover every main point of a long talk.
     </output_format>
   user_prompt: |-
     <task>
